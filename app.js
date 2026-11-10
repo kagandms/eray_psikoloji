@@ -509,6 +509,8 @@ function setLanguage(lang) {
 
 function updateAdminPermissionsUI() {
   const dict = t();
+  stepAdmin.classList.toggle("admin-readonly", isAdminReadOnly);
+
   document.getElementById("admin-badge").textContent = isAdminReadOnly
     ? dict.adminBadgeReadOnly
     : dict.adminBadge;

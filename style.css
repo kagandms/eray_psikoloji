@@ -28,6 +28,19 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
+.admin-readonly #reset-top-btn,
+.admin-readonly #clear-data-btn,
+.admin-readonly #seed-demo-btn,
+.admin-readonly #export-csv-btn,
+.admin-readonly .table-actions,
+.admin-readonly button[data-action="delete"] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
