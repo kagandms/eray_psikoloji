@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,18 +8,28 @@
 </head>
 <body>
   <main class="app-container">
+    <!-- HER EKRANDA GÖRÜNEN ŞIK DİL SEÇİCİ BAR (TR - EN - AR) -->
+    <div class="lang-topbar">
+      <div class="lang-switcher" role="group" aria-label="Dil Seçimi / Language / اللغة">
+        <button type="button" class="lang-btn" data-lang="tr" aria-pressed="true">TR</button>
+        <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+        <button type="button" class="lang-btn" data-lang="ar" aria-pressed="false">AR</button>
+      </div>
+    </div>
+
     <!-- ADIM 1: GİRİŞ EKRANI (OKUL NUMARASI + ONAY KUTUSU) -->
     <section id="step-login" class="card step-section" aria-labelledby="login-heading">
-      <div class="badge">Sunum Etkinliği • 20 Soru</div>
+      <div class="badge" id="login-badge">Sunum Etkinliği • 20 Soru</div>
       <h1 id="login-heading" tabindex="-1">Kaygı Ölçeği Anketi</h1>
-      <p class="subtitle">
+      <p class="subtitle" id="login-subtitle">
         Lütfen başlamak için okul numaranızı giriniz ve aydınlatma onay kutucuğunu işaretleyiniz.
       </p>
 
       <form id="login-form" action="/api/login" method="POST" novalidate>
         <div class="field">
           <label for="student-no">
-            Okul Numaranız <span class="required-star" aria-hidden="true">*</span>
+            <span id="label-student-no">Okul Numaranız</span>
+            <span class="required-star" aria-hidden="true">*</span>
           </label>
           <input
             type="text"
@@ -50,7 +60,7 @@
               aria-describedby="consent-error"
             >
             <label for="consent-check">
-              Verilerimin ve cevaplarımın bu proje hakkında işlenip kullanılmasını onaylıyorum.
+              <span id="label-consent">Verilerimin ve cevaplarımın bu proje hakkında işlenip kullanılmasını onaylıyorum.</span>
               <span class="required-star" aria-hidden="true">*</span>
             </label>
           </div>
@@ -65,7 +75,7 @@
 
     <!-- ADIM 2: ADIM ADIM SORU EKRANI -->
     <section id="step-survey" class="card step-section" aria-labelledby="question-heading" hidden>
-      <nav aria-label="Anket İlerlemesi" class="progress-header">
+      <nav aria-label="Anket İlerlemesi" class="progress-header" id="progress-nav">
         <div class="progress-meta">
           <span id="question-counter" class="step-badge" aria-current="step">Soru 1 / 20</span>
           <span id="progress-percent" class="progress-pct">%5</span>
@@ -84,7 +94,7 @@
               <input type="radio" id="opt-1" name="answer" value="1" required>
               <label for="opt-1">
                 <span class="opt-indicator" aria-hidden="true"></span>
-                <span class="opt-text">Kesinlikle katılmıyorum</span>
+                <span class="opt-text" id="opt-text-1">Kesinlikle katılmıyorum</span>
               </label>
             </div>
 
@@ -92,7 +102,7 @@
               <input type="radio" id="opt-2" name="answer" value="2" required>
               <label for="opt-2">
                 <span class="opt-indicator" aria-hidden="true"></span>
-                <span class="opt-text">Katılmıyorum</span>
+                <span class="opt-text" id="opt-text-2">Katılmıyorum</span>
               </label>
             </div>
 
@@ -100,7 +110,7 @@
               <input type="radio" id="opt-3" name="answer" value="3" required>
               <label for="opt-3">
                 <span class="opt-indicator" aria-hidden="true"></span>
-                <span class="opt-text">Kararsızım</span>
+                <span class="opt-text" id="opt-text-3">Kararsızım</span>
               </label>
             </div>
 
@@ -108,7 +118,7 @@
               <input type="radio" id="opt-4" name="answer" value="4" required>
               <label for="opt-4">
                 <span class="opt-indicator" aria-hidden="true"></span>
-                <span class="opt-text">Katılıyorum</span>
+                <span class="opt-text" id="opt-text-4">Katılıyorum</span>
               </label>
             </div>
 
@@ -116,7 +126,7 @@
               <input type="radio" id="opt-5" name="answer" value="5" required>
               <label for="opt-5">
                 <span class="opt-indicator" aria-hidden="true"></span>
-                <span class="opt-text">Kesinlikle katılıyorum</span>
+                <span class="opt-text" id="opt-text-5">Kesinlikle katılıyorum</span>
               </label>
             </div>
           </div>
@@ -139,7 +149,7 @@
     <section id="step-thanks" class="card step-section text-center" aria-labelledby="thanks-heading" hidden>
       <div class="success-icon" aria-hidden="true">✓</div>
       <h2 id="thanks-heading" tabindex="-1">Katılımınız İçin Teşekkür Ederiz!</h2>
-      <p class="subtitle">
+      <p class="subtitle" id="thanks-subtitle">
         Yanıtlarınız başarıyla kaydedilmiştir. Sunumu dinlemeye devam edebilirsiniz.
       </p>
       <button type="button" id="return-home-btn" class="btn btn-secondary">
@@ -151,7 +161,7 @@
     <section id="step-admin" class="card admin-card step-section" aria-labelledby="admin-heading" hidden>
       <div class="admin-top-bar">
         <div>
-          <span class="badge badge-admin">Canlı Sunum Paneli</span>
+          <span class="badge badge-admin" id="admin-badge">Canlı Sunum Paneli</span>
           <h2 id="admin-heading" tabindex="-1">Sınıf Kaygı Seviyesi Dağılımı</h2>
         </div>
         <div class="admin-top-actions">
@@ -170,27 +180,27 @@
       <!-- ÖZET METRİKLER -->
       <div class="stats-grid">
         <div class="stat-box">
-          <span class="stat-label">Toplam Katılımcı</span>
+          <span class="stat-label" id="stat-label-total">Toplam Katılımcı</span>
           <strong class="stat-value" id="stat-total-count">0</strong>
-          <span class="stat-sub">Öğrenci</span>
+          <span class="stat-sub" id="stat-sub-total">Öğrenci</span>
         </div>
         <div class="stat-box">
-          <span class="stat-label">Sınıf Ortalama Puanı</span>
+          <span class="stat-label" id="stat-label-avg">Sınıf Ortalama Puanı</span>
           <strong class="stat-value" id="stat-avg-total">0</strong>
-          <span class="stat-sub">20 – 100 Aralığında</span>
+          <span class="stat-sub" id="stat-sub-avg">20 – 100 Aralığında</span>
         </div>
         <div class="stat-box">
-          <span class="stat-label">Madde Ortalaması</span>
+          <span class="stat-label" id="stat-label-item">Madde Ortalaması</span>
           <strong class="stat-value" id="stat-avg-item">0.0</strong>
-          <span class="stat-sub">5.0 Üzerinden</span>
+          <span class="stat-sub" id="stat-sub-item">5.0 Üzerinden</span>
         </div>
       </div>
 
       <!-- YÜZDELİK DİLİM DAĞILIMI -->
       <div class="distribution-panel">
-        <h3>Yüzdelik Kaygı Seviyesi Dilimleri</h3>
-        <p class="dist-note">
-          20 soruluk ölçekte toplam puan aralığı <strong>20–100</strong>'dür. Katılımcıların puan dilimlerine göre sınıf içi yüzdelik dağılımı:
+        <h3 id="dist-title">Yüzdelik Kaygı Seviyesi Dilimleri</h3>
+        <p class="dist-note" id="dist-note">
+          20 soruluk ölçekte toplam puan aralığı 20–100'dür. Katılımcıların puan dilimlerine göre sınıf içi yüzdelik dağılımı:
         </p>
 
         <div class="tier-list">
@@ -199,8 +209,8 @@
             <div class="tier-header">
               <div class="tier-title">
                 <span class="tier-dot" aria-hidden="true"></span>
-                <strong>Düşük Kaygı Dilimi</strong>
-                <span class="tier-range">(20 – 46 Puan)</span>
+                <strong id="tier-low-title">Düşük Kaygı Dilimi</strong>
+                <span class="tier-range" id="tier-low-range">(20 – 46 Puan)</span>
               </div>
               <div class="tier-numbers">
                 <span class="tier-pct" id="pct-low">%0</span>
@@ -217,8 +227,8 @@
             <div class="tier-header">
               <div class="tier-title">
                 <span class="tier-dot" aria-hidden="true"></span>
-                <strong>Orta Kaygı Dilimi</strong>
-                <span class="tier-range">(47 – 73 Puan)</span>
+                <strong id="tier-mid-title">Orta Kaygı Dilimi</strong>
+                <span class="tier-range" id="tier-mid-range">(47 – 73 Puan)</span>
               </div>
               <div class="tier-numbers">
                 <span class="tier-pct" id="pct-mid">%0</span>
@@ -235,8 +245,8 @@
             <div class="tier-header">
               <div class="tier-title">
                 <span class="tier-dot" aria-hidden="true"></span>
-                <strong>Yüksek Kaygı Dilimi</strong>
-                <span class="tier-range">(74 – 100 Puan)</span>
+                <strong id="tier-high-title">Yüksek Kaygı Dilimi</strong>
+                <span class="tier-range" id="tier-high-range">(74 – 100 Puan)</span>
               </div>
               <div class="tier-numbers">
                 <span class="tier-pct" id="pct-high">%0</span>
@@ -252,7 +262,7 @@
 
       <!-- 5'Lİ DETAYLI YÜZDELİK DİLİM TABLOSU -->
       <div class="distribution-panel">
-        <h3>Detaylı Puan Aralığı Dağılımı (5 Dilim)</h3>
+        <h3 id="quintile-title">Detaylı Puan Aralığı Dağılımı (5 Dilim)</h3>
         <div class="quintile-grid" id="quintile-container"></div>
       </div>
 
@@ -260,8 +270,8 @@
       <div class="admin-table-section">
         <div class="table-header-bar">
           <div>
-            <h3>Kişi Bazlı (Öğrenci No) Sonuçlar</h3>
-            <p class="dist-note" style="margin-block-end: 0;">
+            <h3 id="students-table-title">Kişi Bazlı (Öğrenci No) Sonuçlar</h3>
+            <p class="dist-note" id="students-table-note" style="margin-block-end: 0;">
               Öğrenci sonuçlarını inceleyebilir, cevap detaylarını görebilir veya tek tek silebilirsiniz.
             </p>
           </div>
@@ -280,7 +290,7 @@
 
         <!-- ÖĞRENCİ NO İLE ARAMA / FİLTRELEME -->
         <search class="student-search-bar">
-          <label for="student-filter" class="visually-hidden">Öğrenci numarasına göre filtrele</label>
+          <label for="student-filter" class="visually-hidden" id="student-filter-label">Öğrenci numarasına göre filtrele</label>
           <input
             type="search"
             id="student-filter"
@@ -298,12 +308,12 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Öğrenci No</th>
-                <th>Toplam Puan</th>
-                <th>Ortalama</th>
-                <th>Kaygı Dilimi</th>
-                <th>Saat</th>
-                <th>İşlemler</th>
+                <th id="th-student-no">Öğrenci No</th>
+                <th id="th-total-score">Toplam Puan</th>
+                <th id="th-avg-score">Ortalama</th>
+                <th id="th-tier">Kaygı Dilimi</th>
+                <th id="th-time">Saat</th>
+                <th id="th-actions">İşlemler</th>
               </tr>
             </thead>
             <tbody id="admin-table-body">

@@ -1,44 +1,351 @@
-// 20 Soruluk Kaygı Ölçeği Soru Havuzu (Tüm maddeler aynı yönde 1-5 arası puanlanır)
-const QUESTIONS = [
-  "Günlük yaşamımda belirgin bir neden olmadan kaygı hissederim.",
-  "Gelecekte yaşanabilecek olumsuz olaylar hakkında sık sık endişelenirim.",
-  "Kaygılandığımda düşüncelerimi kontrol etmekte zorlanırım.",
-  "Küçük sorunları bile zihnimde büyütme eğilimindeyim.",
-  "Her şey yolunda giderken bile kötü bir şey olacakmış gibi hissederim.",
-  "Kaygılandığımda kalp atışlarımın hızlandığını hissederim.",
-  "Stresli durumlarda kaslarımda gerginlik yaşarım.",
-  "Endişelerim nedeniyle uykuya dalmakta veya uykumu sürdürmekte zorlanırım.",
-  "Kaygılı olduğumda nefes alışverişimde değişiklik hissederim.",
-  "Endişelendiğimde mide rahatsızlığı veya benzeri bedensel belirtiler yaşarım.",
-  "Kaygılarım günlük işlerime odaklanmamı zorlaştırır.",
-  "Başkalarının beni nasıl değerlendirdiği konusunda aşırı endişelenirim.",
-  "Belirsiz durumlarla karşılaştığımda huzursuz olurum.",
-  "Hata yapma ihtimali beni gereğinden fazla kaygılandırır.",
-  "Kaygı duyduğum durumlarla yüzleşmek yerine onlardan kaçınırım.",
-  "Önemli kararlar verirken kaygım nedeniyle kararsız kalırım.",
-  "Kaygılarım sosyal ilişkilerimi olumsuz etkiler.",
-  "Gün içerisinde kendimi sık sık huzursuz veya diken üstünde hissederim.",
-  "Endişelerim nedeniyle rahatlamakta güçlük çekerim.",
-  "Kaygılarımın günlük yaşam kalitemi olumsuz etkilediğini düşünürüm."
-];
+// Çok Dilli (TR - EN - AR) 20 Soruluk Kaygı Ölçeği ve UI Çevirileri
+const I18N = {
+  tr: {
+    dir: "ltr",
+    pageTitle: "Kaygı Ölçeği Anketi",
+    loginBadge: "Sunum Etkinliği • 20 Soru",
+    loginHeading: "Kaygı Ölçeği Anketi",
+    loginSubtitle: "Lütfen başlamak için okul numaranızı giriniz ve aydınlatma onay kutucuğunu işaretleyiniz.",
+    labelStudentNo: "Okul Numaranız",
+    placeholderStudentNo: "Örn: 20231045",
+    hintStudentNo: "Ankete katılmak için öğrenci numaranızı yazınız.",
+    errStudentNo: "Lütfen okul numaranızı giriniz.",
+    labelConsent: "Verilerimin ve cevaplarımın bu proje hakkında işlenip kullanılmasını onaylıyorum.",
+    errConsent: "Devam etmek için lütfen onay kutucuğunu işaretleyiniz.",
+    startBtn: "Ankete Başla",
+    progressLabel: "Anket İlerlemesi",
+    questionCounter: (q, total) => `Soru ${q} / ${total}`,
+    progressPct: (pct) => `%${pct}`,
+    options: [
+      "Kesinlikle katılmıyorum",
+      "Katılmıyorum",
+      "Kararsızım",
+      "Katılıyorum",
+      "Kesinlikle katılıyorum"
+    ],
+    errQuestion: "Devam etmek için lütfen bir seçenek işaretleyiniz.",
+    prevBtn: "← Geri",
+    nextBtn: "İleri →",
+    finishBtn: "Anketi Tamamla ✓",
+    savingBtn: "Kaydediliyor...",
+    thanksHeading: "Katılımınız İçin Teşekkür Ederiz!",
+    thanksSubtitle: "Yanıtlarınız başarıyla kaydedilmiştir. Sunumu dinlemeye devam edebilirsiniz.",
+    returnHomeBtn: "Giriş Ekranına Dön",
+    adminBadge: "Canlı Sunum Paneli",
+    adminHeading: "Sınıf Kaygı Seviyesi Dağılımı",
+    refreshBtn: "↻ Yenile",
+    resetAllBtn: "🗑 Tüm Verileri Resetle",
+    exitBtn: "Çıkış",
+    statLabelTotal: "Toplam Katılımcı",
+    statSubTotal: "Öğrenci",
+    statLabelAvg: "Sınıf Ortalama Puanı",
+    statSubAvg: "20 – 100 Aralığında",
+    statLabelItem: "Madde Ortalaması",
+    statSubItem: "5.0 Üzerinden",
+    distTitle: "Yüzdelik Kaygı Seviyesi Dilimleri",
+    distNote: "20 soruluk ölçekte toplam puan aralığı 20–100'dür. Katılımcıların puan dilimlerine göre sınıf içi yüzdelik dağılımı:",
+    tierLowTitle: "Düşük Kaygı Dilimi",
+    tierLowRange: "(20 – 46 Puan)",
+    tierMidTitle: "Orta Kaygı Dilimi",
+    tierMidRange: "(47 – 73 Puan)",
+    tierHighTitle: "Yüksek Kaygı Dilimi",
+    tierHighRange: "(74 – 100 Puan)",
+    personCount: (n) => `(${n} kişi)`,
+    quintileTitle: "Detaylı Puan Aralığı Dağılımı (5 Dilim)",
+    quintilePointSuffix: "Puan",
+    quintileStudentSuffix: "öğrenci",
+    studentsTableTitle: "Kişi Bazlı (Öğrenci No) Sonuçlar",
+    studentsTableNote: "Öğrenci sonuçlarını inceleyebilir, cevap detaylarını görebilir veya tek tek silebilirsiniz.",
+    exportCsvBtn: "⬇ Excel (CSV) İndir",
+    seedDemoBtn: "+ Test Verisi Ekle",
+    filterPlaceholder: "Öğrenci numarası ile ara (Örn: 2023...)",
+    thStudentNo: "Öğrenci No",
+    thTotalScore: "Toplam Puan",
+    thAvgScore: "Ortalama",
+    thTier: "Kaygı Dilimi",
+    thTime: "Saat",
+    thActions: "İşlemler",
+    btnViewAnswers: "🔍 Cevaplar",
+    btnDelete: "🗑 Sil",
+    btnDeleting: "Siliniyor...",
+    emptyTable: "Henüz ankete katılan öğrenci bulunmuyor.",
+    emptySearch: "Aranan öğrenci numarasına ait sonuç bulunamadı.",
+    tierLowPill: "Düşük Dilim (20–46)",
+    tierMidPill: "Orta Dilim (47–73)",
+    tierHighPill: "Yüksek Dilim (74–100)",
+    detailHeader: (no, sc, tier) => `Öğrenci No: ${no} • Toplam Puan: ${sc}/100 (${tier})`,
+    detailQPrefix: (i) => `Soru ${i}`,
+    detailAPrefix: "Yanıt",
+    closeDetailBtn: "Kapat ✕",
+    confirmDeleteSingle: (no) => `"${no}" numaralı öğrencinin kaydını silmek istediğinize emin misiniz?`,
+    confirmResetAll: "TÜM öğrenci yanıtlarını tamamen sıfırlamak (resetlemek) istediğinize emin misiniz?",
+    statusUpdating: "Veriler güncelleniyor...",
+    statusUpdated: (time, count) => `Son güncelleme: ${time} • Toplam ${count} kayıt.`,
+    statusDeletedSingle: (no) => `"${no}" numaralı öğrencinin kaydı silindi.`,
+    statusResetting: "Veriler sıfırlanıyor...",
+    statusResetDone: "Tüm veriler başarıyla sıfırlandı.",
+    statusNoExport: "İndirilecek veri bulunamadı.",
+    statusDemoAdded: (no) => `Örnek öğrenci (${no}) eklendi.`,
+    questions: [
+      "Günlük yaşamımda belirgin bir neden olmadan kaygı hissederim.",
+      "Gelecekte yaşanabilecek olumsuz olaylar hakkında sık sık endişelenirim.",
+      "Kaygılandığımda düşüncelerimi kontrol etmekte zorlanırım.",
+      "Küçük sorunları bile zihnimde büyütme eğilimindeyim.",
+      "Her şey yolunda giderken bile kötü bir şey olacakmış gibi hissederim.",
+      "Kaygılandığımda kalp atışlarımın hızlandığını hissederim.",
+      "Stresli durumlarda kaslarımda gerginlik yaşarım.",
+      "Endişelerim nedeniyle uykuya dalmakta veya uykumu sürdürmekte zorlanırım.",
+      "Kaygılı olduğumda nefes alışverişimde değişiklik hissederim.",
+      "Endişelendiğimde mide rahatsızlığı veya benzeri bedensel belirtiler yaşarım.",
+      "Kaygılarım günlük işlerime odaklanmamı zorlaştırır.",
+      "Başkalarının beni nasıl değerlendirdiği konusunda aşırı endişelenirim.",
+      "Belirsiz durumlarla karşılaştığımda huzursuz olurum.",
+      "Hata yapma ihtimali beni gereğinden fazla kaygılandırır.",
+      "Kaygı duyduğum durumlarla yüzleşmek yerine onlardan kaçınırım.",
+      "Önemli kararlar verirken kaygım nedeniyle kararsız kalırım.",
+      "Kaygılarım sosyal ilişkilerimi olumsuz etkiler.",
+      "Gün içerisinde kendimi sık sık huzursuz veya diken üstünde hissederim.",
+      "Endişelerim nedeniyle rahatlamakta güçlük çekerim.",
+      "Kaygılarımın günlük yaşam kalitemi olumsuz etkilediğini düşünürüm."
+    ]
+  },
 
-const LIKERT_LABELS = {
-  1: "Kesinlikle katılmıyorum (1)",
-  2: "Katılmıyorum (2)",
-  3: "Kararsızım (3)",
-  4: "Katılıyorum (4)",
-  5: "Kesinlikle katılıyorum (5)"
+  en: {
+    dir: "ltr",
+    pageTitle: "Anxiety Scale Survey",
+    loginBadge: "Presentation Activity • 20 Questions",
+    loginHeading: "Anxiety Scale Survey",
+    loginSubtitle: "Please enter your student ID and check the consent box below to begin.",
+    labelStudentNo: "Student ID Number",
+    placeholderStudentNo: "e.g., 20231045",
+    hintStudentNo: "Enter your student number to participate in the survey.",
+    errStudentNo: "Please enter your student ID number.",
+    labelConsent: "I consent to the processing and use of my data and responses for this project.",
+    errConsent: "Please check the consent box to continue.",
+    startBtn: "Start Survey",
+    progressLabel: "Survey Progress",
+    questionCounter: (q, total) => `Question ${q} / ${total}`,
+    progressPct: (pct) => `${pct}%`,
+    options: [
+      "Strongly Disagree",
+      "Disagree",
+      "Neutral / Undecided",
+      "Agree",
+      "Strongly Agree"
+    ],
+    errQuestion: "Please select an option to continue.",
+    prevBtn: "← Back",
+    nextBtn: "Next →",
+    finishBtn: "Submit Survey ✓",
+    savingBtn: "Saving...",
+    thanksHeading: "Thank You for Your Participation!",
+    thanksSubtitle: "Your responses have been successfully recorded. You may continue following the presentation.",
+    returnHomeBtn: "Return to Home",
+    adminBadge: "Live Presentation Dashboard",
+    adminHeading: "Class Anxiety Level Distribution",
+    refreshBtn: "↻ Refresh",
+    resetAllBtn: "🗑 Reset All Data",
+    exitBtn: "Exit",
+    statLabelTotal: "Total Participants",
+    statSubTotal: "Students",
+    statLabelAvg: "Class Average Score",
+    statSubAvg: "Range: 20 – 100",
+    statLabelItem: "Item Mean Score",
+    statSubItem: "Out of 5.0",
+    distTitle: "Anxiety Level Percentage Tiers",
+    distNote: "Total score ranges from 20 to 100 across 20 items. Class percentage breakdown by score tier:",
+    tierLowTitle: "Low Anxiety Tier",
+    tierLowRange: "(20 – 46 Pts)",
+    tierMidTitle: "Moderate Anxiety Tier",
+    tierMidRange: "(47 – 73 Pts)",
+    tierHighTitle: "High Anxiety Tier",
+    tierHighRange: "(74 – 100 Pts)",
+    personCount: (n) => `(${n} students)`,
+    quintileTitle: "Detailed Score Range Breakdown (5 Tiers)",
+    quintilePointSuffix: "Pts",
+    quintileStudentSuffix: "students",
+    studentsTableTitle: "Individual Student Results",
+    studentsTableNote: "Inspect individual student scores, view question-by-question answers, or delete single entries.",
+    exportCsvBtn: "⬇ Export Excel (CSV)",
+    seedDemoBtn: "+ Add Demo Data",
+    filterPlaceholder: "Filter by Student ID (e.g., 2023...)",
+    thStudentNo: "Student ID",
+    thTotalScore: "Total Score",
+    thAvgScore: "Average",
+    thTier: "Anxiety Tier",
+    thTime: "Time",
+    thActions: "Actions",
+    btnViewAnswers: "🔍 Answers",
+    btnDelete: "🗑 Delete",
+    btnDeleting: "Deleting...",
+    emptyTable: "No students have completed the survey yet.",
+    emptySearch: "No matching student ID found.",
+    tierLowPill: "Low Tier (20–46)",
+    tierMidPill: "Moderate Tier (47–73)",
+    tierHighPill: "High Tier (74–100)",
+    detailHeader: (no, sc, tier) => `Student ID: ${no} • Total Score: ${sc}/100 (${tier})`,
+    detailQPrefix: (i) => `Question ${i}`,
+    detailAPrefix: "Answer",
+    closeDetailBtn: "Close ✕",
+    confirmDeleteSingle: (no) => `Are you sure you want to delete the record for student "${no}"?`,
+    confirmResetAll: "Are you sure you want to completely RESET and delete ALL student responses?",
+    statusUpdating: "Updating data...",
+    statusUpdated: (time, count) => `Last updated: ${time} • Total ${count} records.`,
+    statusDeletedSingle: (no) => `Deleted record for student "${no}".`,
+    statusResetting: "Resetting all data...",
+    statusResetDone: "All data has been reset.",
+    statusNoExport: "No data available to export.",
+    statusDemoAdded: (no) => `Added demo student (${no}).`,
+    questions: [
+      "I feel anxious in my daily life without any obvious reason.",
+      "I frequently worry about negative events that might happen in the future.",
+      "When I get anxious, I find it difficult to control my thoughts.",
+      "I tend to magnify even small problems in my mind.",
+      "Even when everything is going well, I feel as though something bad is about to happen.",
+      "When I feel anxious, I notice my heartbeat speeding up.",
+      "I experience muscle tension in stressful situations.",
+      "Because of my worries, I have trouble falling asleep or staying asleep.",
+      "When I am anxious, I notice changes in my breathing.",
+      "When I worry, I experience stomach discomfort or similar physical symptoms.",
+      "My anxieties make it difficult for me to focus on my daily tasks.",
+      "I worry excessively about how others evaluate me.",
+      "I feel uneasy when faced with uncertain situations.",
+      "The possibility of making a mistake makes me overly anxious.",
+      "Instead of facing situations that make me anxious, I avoid them.",
+      "When making important decisions, I become indecisive due to my anxiety.",
+      "My anxieties negatively affect my social relationships.",
+      "During the day, I often feel restless or on edge.",
+      "Because of my worries, I have difficulty relaxing.",
+      "I feel that my anxieties negatively affect my daily quality of life."
+    ]
+  },
+
+  ar: {
+    dir: "rtl",
+    pageTitle: "استبيان مقياس القلق",
+    loginBadge: "نشاط العرض التقديمي • 20 سؤالاً",
+    loginHeading: "استبيان مقياس القلق",
+    loginSubtitle: "يرجى إدخال رقمك الجامعي وتحديد مربع الموافقة أدناه للبدء.",
+    labelStudentNo: "الرقم الجامعي / المدرسي",
+    placeholderStudentNo: "مثال: 20231045",
+    hintStudentNo: "أدخل رقمك الطلابي للمشاركة في الاستبيان.",
+    errStudentNo: "يرجى إدخال رقمك الطلابي.",
+    labelConsent: "أوافق على معالجة واستخدام بياناتي وإجاباتي في إطار هذا المشروع.",
+    errConsent: "يرجى تحديد مربع الموافقة للمتابعة.",
+    startBtn: "ابدأ الاستبيان",
+    progressLabel: "تقدم الاستبيان",
+    questionCounter: (q, total) => `السؤال ${q} / ${total}`,
+    progressPct: (pct) => `%${pct}`,
+    options: [
+      "لا أوافق بشدة",
+      "لا أوافق",
+      "محايد / غير متأكد",
+      "أوافق",
+      "أوافق بشدة"
+    ],
+    errQuestion: "يرجى اختيار إجابة للمتابعة.",
+    prevBtn: "→ السابق",
+    nextBtn: "التالي ←",
+    finishBtn: "إرسال الاستبيان ✓",
+    savingBtn: "جارٍ الحفظ...",
+    thanksHeading: "شكراً لمشاركتكم!",
+    thanksSubtitle: "تم حفظ إجاباتكم بنجاح. يمكنكم متابعة الاستماع إلى العرض التقديمي.",
+    returnHomeBtn: "العودة إلى صفحة البداية",
+    adminBadge: "لوحة العرض المباشر",
+    adminHeading: "توزيع مستويات القلق في الصف",
+    refreshBtn: "↻ تحديث",
+    resetAllBtn: "🗑 تصفير جميع البيانات",
+    exitBtn: "خروج",
+    statLabelTotal: "إجمالي المشاركين",
+    statSubTotal: "طالب",
+    statLabelAvg: "متوسط درجات الصف",
+    statSubAvg: "في النطاق 20 – 100",
+    statLabelItem: "متوسط العبارة",
+    statSubItem: "من أصل 5.0",
+    distTitle: "النسب المئوية لفئات مستوى القلق",
+    distNote: "يتراوح المجموع الكلي بين 20 و100 درجة عبر 20 سؤالاً. التوزيع النسبي للصف حسب الفئات:",
+    tierLowTitle: "فئة القلق المنخفض",
+    tierLowRange: "(20 – 46 نقطة)",
+    tierMidTitle: "فئة القلق المتوسط",
+    tierMidRange: "(47 – 73 نقطة)",
+    tierHighTitle: "فئة القلق المرتفع",
+    tierHighRange: "(74 – 100 نقطة)",
+    personCount: (n) => `(${n} طالب)`,
+    quintileTitle: "التوزيع التفصيلي لنطاقات الدرجات (5 فئات)",
+    quintilePointSuffix: "نقطة",
+    quintileStudentSuffix: "طالب",
+    studentsTableTitle: "النتائج الفردية حسب رقم الطالب",
+    studentsTableNote: "يمكنك استعراض نتائج الطلاب، أو عرض تفاصيل الإجابات، أو حذف كل طالب على حدة.",
+    exportCsvBtn: "⬇ تحميل ملف Excel (CSV)",
+    seedDemoBtn: "+ إضافة بيانات تجريبية",
+    filterPlaceholder: "ابحث برقم الطالب (مثال: 2023...)",
+    thStudentNo: "رقم الطالب",
+    thTotalScore: "المجموع الكلي",
+    thAvgScore: "المتوسط",
+    thTier: "فئة القلق",
+    thTime: "الوقت",
+    thActions: "الإجراءات",
+    btnViewAnswers: "🔍 الإجابات",
+    btnDelete: "🗑 حذف",
+    btnDeleting: "جارٍ الحذف...",
+    emptyTable: "لم يشارك أي طالب في الاستبيان بعد.",
+    emptySearch: "لم يتم العثور على نتائج مطابقة لرقم الطالب.",
+    tierLowPill: "فئة منخفضة (20–46)",
+    tierMidPill: "فئة متوسطة (47–73)",
+    tierHighPill: "فئة مرتفعة (74–100)",
+    detailHeader: (no, sc, tier) => `رقم الطالب: ${no} • المجموع: ${sc}/100 (${tier})`,
+    detailQPrefix: (i) => `السؤال ${i}`,
+    detailAPrefix: "الإجابة",
+    closeDetailBtn: "إغلاق ✕",
+    confirmDeleteSingle: (no) => `هل أنت متأكد أنك تريد حذف سجل الطالب رقم "${no}"؟`,
+    confirmResetAll: "هل أنت متأكد أنك تريد تصفير وحذف جميع إجابات الطلاب بالكامل؟",
+    statusUpdating: "جارٍ تحديث البيانات...",
+    statusUpdated: (time, count) => `آخر تحديث: ${time} • إجمالي السجلات: ${count}.`,
+    statusDeletedSingle: (no) => `تم حذف سجل الطالب "${no}".`,
+    statusResetting: "جارٍ تصفير البيانات...",
+    statusResetDone: "تم تصفير جميع البيانات بنجاح.",
+    statusNoExport: "لا توجد بيانات لتحميلها.",
+    statusDemoAdded: (no) => `تمت إضافة طالب تجريبي (${no}).`,
+    questions: [
+      "أشعر بالقلق في حياتي اليومية دون سبب واضح.",
+      "أقلق كثيراً بشأن الأحداث السلبية التي قد تقع في المستقبل.",
+      "عندما أشعر بالقلق، أجد صعوبة في السيطرة على أفكاري.",
+      "أميل إلى تضخيم حتى المشكلات الصغيرة في ذهني.",
+      "حتى عندما يسير كل شيء على ما يرام، أشعر وكأن شيئاً سيئاً على وشك الحدوث.",
+      "عندما أقلق، أشعر بتسارع في نبضات قلبي.",
+      "أعاني من شد أو توتر في عضلاتي في المواقف الضاغطة.",
+      "بسبب مخاوفي، أواجه صعوبة في النوم أو الاستمرار فيه.",
+      "عندما أكون قلقاً، ألاحظ تغيراً في تنفسي.",
+      "عندما أقلق، أعاني من اضطراب في المعدة أو أعراض جسدية مشابهة.",
+      "يجعل قلقي من الصعب عليّ التركيز في مهامي اليومية.",
+      "أقلق بشكل مفرط بشأن كيفية تقييم الآخرين لي.",
+      "أشعر بعدم الارتياح عند مواجهة مواقف غير واضحة أو غامضة.",
+      "احتمال ارتكاب خطأ يثير قلقي أكثر مما ينبغي.",
+      "بدلاً من مواجهة المواقف التي تثير قلقي، أتجنبها.",
+      "عند اتخاذ قرارات مهمة، أتردد بسبب قلقي.",
+      "يؤثر قلقي سلباً على علاقاتي الاجتماعية.",
+      "خلال اليوم، غالباً ما أشعر بعدم الاستقرار أو التوتر الشديد.",
+      "بسبب مخاوفي، أجد صعوبة في الاسترخاء.",
+      "أعتقد أن قلقي يؤثر سلباً على جودة حياتي اليومية."
+    ]
+  }
 };
 
+const QUESTION_COUNT = 20;
 const ADMIN_PASSWORDS = ["sunum-falan-filan", "(sunum-falan-filan)"];
 const LOCAL_STORAGE_KEY = "kaygi_olcegi_submissions_v1";
+const LANG_STORAGE_KEY = "kaygi_olcegi_lang_v1";
 const CLOUD_STORE_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a1c42e500a7993";
 
 // Uygulama Durumu
+let currentLang = localStorage.getItem(LANG_STORAGE_KEY) || "tr";
+if (!I18N[currentLang]) currentLang = "tr";
+
 let currentStudentNo = "";
 let currentQuestionIndex = 0;
-let userAnswers = new Array(QUESTIONS.length).fill(null);
+let userAnswers = new Array(QUESTION_COUNT).fill(null);
 let cachedSubmissions = [];
+let currentlyViewedStudentId = null;
 let adminPollTimer = null;
 
 // DOM Referansları
@@ -47,11 +354,14 @@ const stepSurvey = document.getElementById("step-survey");
 const stepThanks = document.getElementById("step-thanks");
 const stepAdmin = document.getElementById("step-admin");
 
+const langButtons = Array.from(document.querySelectorAll(".lang-btn"));
+
 const loginForm = document.getElementById("login-form");
 const studentNoInput = document.getElementById("student-no");
 const studentNoError = document.getElementById("student-no-error");
 const consentCheck = document.getElementById("consent-check");
 const consentError = document.getElementById("consent-error");
+const startBtn = document.getElementById("start-btn");
 
 const questionForm = document.getElementById("question-form");
 const questionCounter = document.getElementById("question-counter");
@@ -77,6 +387,119 @@ const detailStudentTitle = document.getElementById("detail-student-title");
 const detailAnswersList = document.getElementById("detail-answers-list");
 const closeDetailBtn = document.getElementById("close-detail-btn");
 const adminStatus = document.getElementById("admin-status");
+
+function t() {
+  return I18N[currentLang] || I18N.tr;
+}
+
+// --- DİL DEĞİŞTİRME (TR / EN / AR) ---
+function setLanguage(lang) {
+  if (!I18N[lang]) return;
+  currentLang = lang;
+  try {
+    localStorage.setItem(LANG_STORAGE_KEY, lang);
+  } catch {
+    // localStorage kapalıysa devam et
+  }
+
+  const dict = t();
+  document.documentElement.lang = lang;
+  document.documentElement.dir = dict.dir;
+  document.title = dict.pageTitle;
+
+  langButtons.forEach((btn) => {
+    const isActive = btn.getAttribute("data-lang") === lang;
+    btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+
+  // Giriş Ekranı Metinleri
+  document.getElementById("login-badge").textContent = dict.loginBadge;
+  document.getElementById("login-heading").textContent = dict.loginHeading;
+  document.getElementById("login-subtitle").textContent = dict.loginSubtitle;
+  document.getElementById("label-student-no").textContent = dict.labelStudentNo;
+  studentNoInput.placeholder = dict.placeholderStudentNo;
+  document.getElementById("student-no-hint").textContent = dict.hintStudentNo;
+  document.getElementById("label-consent").textContent = dict.labelConsent;
+  startBtn.textContent = dict.startBtn;
+
+  if (studentNoInput.getAttribute("aria-invalid") === "true") {
+    studentNoError.textContent = dict.errStudentNo;
+  }
+  if (consentCheck.getAttribute("aria-invalid") === "true") {
+    consentError.textContent = dict.errConsent;
+  }
+
+  // Anket Seçenekleri
+  dict.options.forEach((optLabel, idx) => {
+    const el = document.getElementById(`opt-text-${idx + 1}`);
+    if (el) el.textContent = optLabel;
+  });
+  document.getElementById("progress-nav").setAttribute("aria-label", dict.progressLabel);
+  prevBtn.textContent = dict.prevBtn;
+
+  if (!stepSurvey.hidden) {
+    renderCurrentQuestion();
+  }
+
+  // Teşekkür Ekranı
+  document.getElementById("thanks-heading").textContent = dict.thanksHeading;
+  document.getElementById("thanks-subtitle").textContent = dict.thanksSubtitle;
+  returnHomeBtn.textContent = dict.returnHomeBtn;
+
+  // Admin Paneli Metinleri
+  document.getElementById("admin-badge").textContent = dict.adminBadge;
+  document.getElementById("admin-heading").textContent = dict.adminHeading;
+  refreshAdminBtn.textContent = dict.refreshBtn;
+  resetTopBtn.textContent = dict.resetAllBtn;
+  exitAdminBtn.textContent = dict.exitBtn;
+
+  document.getElementById("stat-label-total").textContent = dict.statLabelTotal;
+  document.getElementById("stat-sub-total").textContent = dict.statSubTotal;
+  document.getElementById("stat-label-avg").textContent = dict.statLabelAvg;
+  document.getElementById("stat-sub-avg").textContent = dict.statSubAvg;
+  document.getElementById("stat-label-item").textContent = dict.statLabelItem;
+  document.getElementById("stat-sub-item").textContent = dict.statSubItem;
+
+  document.getElementById("dist-title").textContent = dict.distTitle;
+  document.getElementById("dist-note").textContent = dict.distNote;
+  document.getElementById("tier-low-title").textContent = dict.tierLowTitle;
+  document.getElementById("tier-low-range").textContent = dict.tierLowRange;
+  document.getElementById("tier-mid-title").textContent = dict.tierMidTitle;
+  document.getElementById("tier-mid-range").textContent = dict.tierMidRange;
+  document.getElementById("tier-high-title").textContent = dict.tierHighTitle;
+  document.getElementById("tier-high-range").textContent = dict.tierHighRange;
+
+  document.getElementById("quintile-title").textContent = dict.quintileTitle;
+  document.getElementById("students-table-title").textContent = dict.studentsTableTitle;
+  document.getElementById("students-table-note").textContent = dict.studentsTableNote;
+  exportCsvBtn.textContent = dict.exportCsvBtn;
+  seedDemoBtn.textContent = dict.seedDemoBtn;
+  clearDataBtn.textContent = dict.resetAllBtn;
+  studentFilterInput.placeholder = dict.filterPlaceholder;
+
+  document.getElementById("th-student-no").textContent = dict.thStudentNo;
+  document.getElementById("th-total-score").textContent = dict.thTotalScore;
+  document.getElementById("th-avg-score").textContent = dict.thAvgScore;
+  document.getElementById("th-tier").textContent = dict.thTier;
+  document.getElementById("th-time").textContent = dict.thTime;
+  document.getElementById("th-actions").textContent = dict.thActions;
+  closeDetailBtn.textContent = dict.closeDetailBtn;
+
+  if (!stepAdmin.hidden) {
+    renderAdminStats(cachedSubmissions);
+    if (!studentDetailPanel.hidden && currentlyViewedStudentId) {
+      const st = cachedSubmissions.find((s) => s.id === currentlyViewedStudentId);
+      if (st) showStudentDetails(st, false);
+    }
+  }
+}
+
+langButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const selectedLang = btn.getAttribute("data-lang");
+    setLanguage(selectedLang);
+  });
+});
 
 // --- EKRAN GEÇİŞ YÖNETİMİ ---
 function showSection(targetSection, headingId) {
@@ -114,7 +537,6 @@ function saveLocalSubmissions(list) {
 }
 
 async function fetchAllSubmissions() {
-  // 1. Önce Bulut Deposundan (Ana Kaynak) çekmeyi dene
   try {
     const cloudRes = await fetch(CLOUD_STORE_URL, { cache: "no-store" });
     if (cloudRes.ok) {
@@ -130,7 +552,6 @@ async function fetchAllSubmissions() {
     // Bulut erişimi yoksa yerel sunucu veya localStorage'a düş
   }
 
-  // 2. Yerel Node sunucusu (/api/responses) varsa oradan çek
   try {
     const res = await fetch("/api/responses", { cache: "no-store" });
     if (res.ok) {
@@ -154,7 +575,6 @@ async function syncSubmissionListEverywhere(updatedList) {
   cachedSubmissions = updatedList;
   saveLocalSubmissions(updatedList);
 
-  // Bulut deposunu güncelle
   try {
     await fetch(CLOUD_STORE_URL, {
       method: "PUT",
@@ -168,7 +588,6 @@ async function syncSubmissionListEverywhere(updatedList) {
     // Bulut hatası
   }
 
-  // Yerel Node sunucusu varsa onu da senkronize et
   try {
     await fetch("/api/responses", {
       method: "PUT",
@@ -182,7 +601,6 @@ async function syncSubmissionListEverywhere(updatedList) {
 
 async function persistSubmission(newEntry) {
   const currentList = await fetchAllSubmissions();
-  // Aynı öğrenci numarası varsa üzerine yaz, yoksa ekle
   const filtered = currentList.filter(
     (item) => String(item.studentNo).trim() !== String(newEntry.studentNo).trim()
   );
@@ -203,10 +621,11 @@ async function clearAllSubmissions() {
 // --- ADIM 1: GİRİŞ DOĞRULAMA (OKUL NO + ONAY KUTUSU) ---
 function validateStudentNo() {
   const val = studentNoInput.value.trim();
+  const dict = t();
   if (!val) {
-    studentNoInput.setCustomValidity("Lütfen okul numaranızı giriniz.");
+    studentNoInput.setCustomValidity(dict.errStudentNo);
     studentNoInput.setAttribute("aria-invalid", "true");
-    studentNoError.textContent = "Lütfen okul numaranızı giriniz.";
+    studentNoError.textContent = dict.errStudentNo;
     return false;
   }
   studentNoInput.setCustomValidity("");
@@ -216,10 +635,11 @@ function validateStudentNo() {
 }
 
 function validateConsent() {
+  const dict = t();
   if (!consentCheck.checked) {
-    consentCheck.setCustomValidity("Ankete katılmak için onay kutucuğunu işaretlemelisiniz.");
+    consentCheck.setCustomValidity(dict.errConsent);
     consentCheck.setAttribute("aria-invalid", "true");
-    consentError.textContent = "Devam etmek için lütfen onay kutucuğunu işaretleyiniz.";
+    consentError.textContent = dict.errConsent;
     return false;
   }
   consentCheck.setCustomValidity("");
@@ -259,7 +679,7 @@ loginForm.addEventListener("submit", async (e) => {
 
   const entered = studentNoInput.value.trim();
 
-  // Gizli Admin Paneli Kontrolü: "Sunum-Falan-Filan" (Onay kutusu şartı aranmaz)
+  // Gizli Admin Paneli Kontrolü: "Sunum-Falan-Filan"
   if (ADMIN_PASSWORDS.includes(entered.toLowerCase())) {
     studentNoInput.value = "";
     consentError.textContent = "";
@@ -276,21 +696,22 @@ loginForm.addEventListener("submit", async (e) => {
 
   currentStudentNo = entered;
   currentQuestionIndex = 0;
-  userAnswers = new Array(QUESTIONS.length).fill(null);
+  userAnswers = new Array(QUESTION_COUNT).fill(null);
   renderCurrentQuestion();
   showSection(stepSurvey, "question-heading");
 });
 
 // --- ADIM 2: SORU GÖSTERİMİ VE İLERİ / GERİ GEÇİŞ ---
 function renderCurrentQuestion() {
+  const dict = t();
   const qNum = currentQuestionIndex + 1;
-  const total = QUESTIONS.length;
+  const total = QUESTION_COUNT;
   const pct = Math.round((qNum / total) * 100);
 
-  questionCounter.textContent = `Soru ${qNum} / ${total}`;
-  progressPercent.textContent = `%${pct}`;
+  questionCounter.textContent = dict.questionCounter(qNum, total);
+  progressPercent.textContent = dict.progressPct(pct);
   surveyProgress.value = qNum;
-  questionHeading.textContent = `${qNum}. ${QUESTIONS[currentQuestionIndex]}`;
+  questionHeading.textContent = `${qNum}. ${dict.questions[currentQuestionIndex]}`;
   questionError.textContent = "";
 
   const savedVal = userAnswers[currentQuestionIndex];
@@ -300,12 +721,13 @@ function renderCurrentQuestion() {
 
   prevBtn.disabled = currentQuestionIndex === 0;
   prevBtn.style.visibility = currentQuestionIndex === 0 ? "hidden" : "visible";
+  prevBtn.textContent = dict.prevBtn;
 
   if (currentQuestionIndex === total - 1) {
-    nextBtn.textContent = "Anketi Tamamla ✓";
+    nextBtn.textContent = dict.finishBtn;
     nextBtn.setAttribute("enterkeyhint", "done");
   } else {
-    nextBtn.textContent = "İleri →";
+    nextBtn.textContent = dict.nextBtn;
     nextBtn.setAttribute("enterkeyhint", "next");
   }
 }
@@ -327,10 +749,11 @@ prevBtn.addEventListener("click", () => {
 
 questionForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  const dict = t();
 
   const selected = radioInputs.find((r) => r.checked);
   if (!selected) {
-    questionError.textContent = "Devam etmek için lütfen bir seçenek işaretleyiniz.";
+    questionError.textContent = dict.errQuestion;
     radioInputs[0].focus();
     return;
   }
@@ -338,21 +761,22 @@ questionForm.addEventListener("submit", async (e) => {
   userAnswers[currentQuestionIndex] = Number(selected.value);
   questionError.textContent = "";
 
-  if (currentQuestionIndex < QUESTIONS.length - 1) {
+  if (currentQuestionIndex < QUESTION_COUNT - 1) {
     currentQuestionIndex += 1;
     renderCurrentQuestion();
     questionHeading.focus();
   } else {
     nextBtn.disabled = true;
-    nextBtn.textContent = "Kaydediliyor...";
+    nextBtn.textContent = dict.savingBtn;
 
     const totalScore = userAnswers.reduce((acc, v) => acc + (Number(v) || 1), 0);
-    const avgScore = Number((totalScore / QUESTIONS.length).toFixed(2));
+    const avgScore = Number((totalScore / QUESTION_COUNT).toFixed(2));
 
     const entry = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       studentNo: currentStudentNo,
       consentApproved: true,
+      lang: currentLang,
       answers: [...userAnswers],
       totalScore,
       avgScore,
@@ -378,13 +802,14 @@ returnHomeBtn.addEventListener("click", () => {
 
 // --- ADIM 4: GİZLİ ADMİN PANELİ, KİŞİ BAZLI SONUÇLAR VE SİLME ---
 function getTierInfo(score) {
+  const dict = t();
   if (score <= 46) {
-    return { key: "low", label: "Düşük Dilim (20–46)", pillClass: "pill-low" };
+    return { key: "low", label: dict.tierLowPill, pillClass: "pill-low" };
   }
   if (score <= 73) {
-    return { key: "mid", label: "Orta Dilim (47–73)", pillClass: "pill-mid" };
+    return { key: "mid", label: dict.tierMidPill, pillClass: "pill-mid" };
   }
-  return { key: "high", label: "Yüksek Dilim (74–100)", pillClass: "pill-high" };
+  return { key: "high", label: dict.tierHighPill, pillClass: "pill-high" };
 }
 
 function escapeHtml(str) {
@@ -398,6 +823,7 @@ function escapeHtml(str) {
 
 async function openAdminPanel() {
   studentDetailPanel.hidden = true;
+  currentlyViewedStudentId = null;
   showSection(stepAdmin, "admin-heading");
   await refreshAdminData();
 
@@ -407,13 +833,18 @@ async function openAdminPanel() {
 }
 
 async function refreshAdminData() {
-  adminStatus.textContent = "Veriler güncelleniyor...";
+  const dict = t();
+  adminStatus.textContent = dict.statusUpdating;
   const submissions = await fetchAllSubmissions();
   renderAdminStats(submissions);
-  adminStatus.textContent = `Son güncelleme: ${new Date().toLocaleTimeString("tr-TR")} • Toplam ${submissions.length} kayıt.`;
+  adminStatus.textContent = dict.statusUpdated(
+    new Date().toLocaleTimeString("tr-TR"),
+    submissions.length
+  );
 }
 
 function renderAdminStats(submissions) {
+  const dict = t();
   const totalCount = submissions.length;
   document.getElementById("stat-total-count").textContent = String(totalCount);
 
@@ -422,8 +853,8 @@ function renderAdminStats(submissions) {
     document.getElementById("stat-avg-item").textContent = "0.0";
 
     ["low", "mid", "high"].forEach((k) => {
-      document.getElementById(`pct-${k}`).textContent = "%0";
-      document.getElementById(`count-${k}`).textContent = "(0 kişi)";
+      document.getElementById(`pct-${k}`).textContent = dict.progressPct(0);
+      document.getElementById(`count-${k}`).textContent = dict.personCount(0);
       document.getElementById(`bar-${k}`).style.width = "0%";
     });
 
@@ -434,12 +865,11 @@ function renderAdminStats(submissions) {
 
   const sumScores = submissions.reduce((acc, s) => acc + Number(s.totalScore || 0), 0);
   const avgTotal = (sumScores / totalCount).toFixed(1);
-  const avgItem = (sumScores / (totalCount * QUESTIONS.length)).toFixed(2);
+  const avgItem = (sumScores / (totalCount * QUESTION_COUNT)).toFixed(2);
 
   document.getElementById("stat-avg-total").textContent = avgTotal;
   document.getElementById("stat-avg-item").textContent = avgItem;
 
-  // 3 Ana Dilim Hesaplaması (20-46 Düşük, 47-73 Orta, 74-100 Yüksek)
   let lowCount = 0;
   let midCount = 0;
   let highCount = 0;
@@ -455,16 +885,16 @@ function renderAdminStats(submissions) {
   const midPct = Math.round((midCount / totalCount) * 100);
   const highPct = Math.round((highCount / totalCount) * 100);
 
-  document.getElementById("pct-low").textContent = `%${lowPct}`;
-  document.getElementById("count-low").textContent = `(${lowCount} kişi)`;
+  document.getElementById("pct-low").textContent = dict.progressPct(lowPct);
+  document.getElementById("count-low").textContent = dict.personCount(lowCount);
   document.getElementById("bar-low").style.width = `${lowPct}%`;
 
-  document.getElementById("pct-mid").textContent = `%${midPct}`;
-  document.getElementById("count-mid").textContent = `(${midCount} kişi)`;
+  document.getElementById("pct-mid").textContent = dict.progressPct(midPct);
+  document.getElementById("count-mid").textContent = dict.personCount(midCount);
   document.getElementById("bar-mid").style.width = `${midPct}%`;
 
-  document.getElementById("pct-high").textContent = `%${highPct}`;
-  document.getElementById("count-high").textContent = `(${highCount} kişi)`;
+  document.getElementById("pct-high").textContent = dict.progressPct(highPct);
+  document.getElementById("count-high").textContent = dict.personCount(highCount);
   document.getElementById("bar-high").style.width = `${highPct}%`;
 
   renderQuintiles(submissions);
@@ -472,6 +902,7 @@ function renderAdminStats(submissions) {
 }
 
 function renderStudentTable(submissions) {
+  const dict = t();
   const query = (studentFilterInput?.value || "").trim().toLowerCase();
   const filtered = query
     ? submissions.filter((s) => String(s.studentNo).toLowerCase().includes(query))
@@ -481,7 +912,7 @@ function renderStudentTable(submissions) {
     adminTableBody.innerHTML = `
       <tr>
         <td colspan="7" class="empty-row">
-          ${query ? "Aranan öğrenci numarasına ait sonuç bulunamadı." : "Henüz ankete katılan öğrenci bulunmuyor."}
+          ${escapeHtml(query ? dict.emptySearch : dict.emptyTable)}
         </td>
       </tr>
     `;
@@ -500,7 +931,7 @@ function renderStudentTable(submissions) {
           <td><strong>${safeNo}</strong></td>
           <td><strong>${Number(item.totalScore)}</strong> / 100</td>
           <td>${Number(item.avgScore).toFixed(2)} / 5</td>
-          <td><span class="pill ${tier.pillClass}">${tier.label}</span></td>
+          <td><span class="pill ${tier.pillClass}">${escapeHtml(tier.label)}</span></td>
           <td>${escapeHtml(item.dateStr || "-")}</td>
           <td>
             <div class="row-actions">
@@ -510,7 +941,7 @@ function renderStudentTable(submissions) {
                 data-action="view"
                 data-id="${safeId}"
               >
-                🔍 Cevaplar
+                ${escapeHtml(dict.btnViewAnswers)}
               </button>
               <button
                 type="button"
@@ -519,7 +950,7 @@ function renderStudentTable(submissions) {
                 data-id="${safeId}"
                 data-no="${safeNo}"
               >
-                🗑 Sil
+                ${escapeHtml(dict.btnDelete)}
               </button>
             </div>
           </td>
@@ -533,68 +964,79 @@ studentFilterInput.addEventListener("input", () => {
   renderStudentTable(cachedSubmissions);
 });
 
-// Tablo içi "Cevaplar" (Detay Gör) ve "Sil" (Tekil Silme) Butonları
 adminTableBody.addEventListener("click", async (e) => {
   const btn = e.target.closest("button[data-action]");
   if (!btn) return;
 
+  const dict = t();
   const action = btn.getAttribute("data-action");
   const targetId = btn.getAttribute("data-id");
 
   if (action === "view") {
     const student = cachedSubmissions.find((s) => s.id === targetId);
     if (!student) return;
-    showStudentDetails(student);
+    showStudentDetails(student, true);
     return;
   }
 
   if (action === "delete") {
     const studentNo = btn.getAttribute("data-no") || "";
-    const ok = window.confirm(
-      `"${studentNo}" numaralı öğrencinin kaydını silmek istediğinize emin misiniz?`
-    );
+    const ok = window.confirm(dict.confirmDeleteSingle(studentNo));
     if (!ok) return;
 
     btn.disabled = true;
-    btn.textContent = "Siliniyor...";
+    btn.textContent = dict.btnDeleting;
     await deleteSingleSubmission(targetId);
     studentDetailPanel.hidden = true;
+    currentlyViewedStudentId = null;
     renderAdminStats(cachedSubmissions);
-    adminStatus.textContent = `"${studentNo}" numaralı öğrencinin kaydı silindi.`;
+    adminStatus.textContent = dict.statusDeletedSingle(studentNo);
   }
 });
 
-function showStudentDetails(student) {
+function showStudentDetails(student, shouldFocus = true) {
+  const dict = t();
+  currentlyViewedStudentId = student.id;
   const tier = getTierInfo(Number(student.totalScore));
-  detailStudentTitle.textContent = `Öğrenci No: ${student.studentNo} • Toplam Puan: ${student.totalScore}/100 (${tier.label})`;
+  detailStudentTitle.textContent = dict.detailHeader(
+    student.studentNo,
+    student.totalScore,
+    tier.label
+  );
 
   const answers = Array.isArray(student.answers) ? student.answers : [];
-  detailAnswersList.innerHTML = QUESTIONS.map((qText, i) => {
-    const val = answers[i];
-    const valText = LIKERT_LABELS[val] || `Puan: ${val ?? "-"}`;
-    return `
-      <div class="detail-answer-card">
-        <span class="detail-q-text"><strong>Soru ${i + 1}:</strong> ${escapeHtml(qText)}</span>
-        <span class="detail-a-val">Yanıt: ${escapeHtml(valText)}</span>
-      </div>
-    `;
-  }).join("");
+  detailAnswersList.innerHTML = dict.questions
+    .map((qText, i) => {
+      const val = Number(answers[i]);
+      const optText = val >= 1 && val <= 5 ? `${dict.options[val - 1]} (${val})` : `${val || "-"}`;
+      return `
+        <div class="detail-answer-card">
+          <span class="detail-q-text"><strong>${escapeHtml(dict.detailQPrefix(i + 1))}:</strong> ${escapeHtml(qText)}</span>
+          <span class="detail-a-val">${escapeHtml(dict.detailAPrefix)}: ${escapeHtml(optText)}</span>
+        </div>
+      `;
+    })
+    .join("");
 
   studentDetailPanel.hidden = false;
-  detailStudentTitle.focus();
+  if (shouldFocus) {
+    detailStudentTitle.focus();
+  }
 }
 
 closeDetailBtn.addEventListener("click", () => {
   studentDetailPanel.hidden = true;
+  currentlyViewedStudentId = null;
 });
 
 function renderQuintiles(submissions) {
+  const dict = t();
   const ranges = [
-    { label: "20 – 35 Puan", min: 20, max: 35 },
-    { label: "36 – 51 Puan", min: 36, max: 51 },
-    { label: "52 – 67 Puan", min: 52, max: 67 },
-    { label: "68 – 83 Puan", min: 68, max: 83 },
-    { label: "84 – 100 Puan", min: 84, max: 100 }
+    { min: 20, max: 35 },
+    { min: 36, max: 51 },
+    { min: 52, max: 67 },
+    { min: 68, max: 83 },
+    { min: 84, max: 100 }
   ];
 
   const total = submissions.length;
@@ -608,9 +1050,9 @@ function renderQuintiles(submissions) {
       const pct = total > 0 ? Math.round((cnt / total) * 100) : 0;
       return `
         <div class="quintile-box">
-          <span class="quintile-range">${r.label}</span>
-          <strong class="quintile-pct">%${pct}</strong>
-          <span class="quintile-cnt">${cnt} öğrenci</span>
+          <span class="quintile-range">${r.min} – ${r.max} ${escapeHtml(dict.quintilePointSuffix)}</span>
+          <strong class="quintile-pct">${escapeHtml(dict.progressPct(pct))}</strong>
+          <span class="quintile-cnt">${cnt} ${escapeHtml(dict.quintileStudentSuffix)}</span>
         </div>
       `;
     })
@@ -623,14 +1065,16 @@ refreshAdminBtn.addEventListener("click", () => {
 
 exitAdminBtn.addEventListener("click", () => {
   studentDetailPanel.hidden = true;
+  currentlyViewedStudentId = null;
   showSection(stepLogin, "login-heading");
 });
 
 // Excel (CSV) İndirme
 exportCsvBtn.addEventListener("click", async () => {
+  const dict = t();
   const submissions = await fetchAllSubmissions();
   if (submissions.length === 0) {
-    adminStatus.textContent = "İndirilecek veri bulunamadı.";
+    adminStatus.textContent = dict.statusNoExport;
     return;
   }
 
@@ -642,7 +1086,7 @@ exportCsvBtn.addEventListener("click", async () => {
     "Ortalama_Puan",
     "Kaygi_Dilimi",
     "Saat",
-    ...QUESTIONS.map((_, i) => `Soru_${i + 1}`)
+    ...Array.from({ length: QUESTION_COUNT }, (_, i) => `Soru_${i + 1}`)
   ];
 
   const rows = submissions.map((s, idx) => {
@@ -656,7 +1100,7 @@ exportCsvBtn.addEventListener("click", async () => {
       s.avgScore,
       `"${tier}"`,
       `"${s.dateStr || ""}"`,
-      ...QUESTIONS.map((_, i) => ansCols[i] ?? "")
+      ...Array.from({ length: QUESTION_COUNT }, (_, i) => ansCols[i] ?? "")
     ].join(";");
   });
 
@@ -674,16 +1118,18 @@ exportCsvBtn.addEventListener("click", async () => {
 
 // Sunum Öncesi Test İçin Örnek Veri Ekleme
 seedDemoBtn.addEventListener("click", async () => {
+  const dict = t();
   seedDemoBtn.disabled = true;
   const randomNo = `2023${Math.floor(1000 + Math.random() * 9000)}`;
-  const answers = QUESTIONS.map(() => Math.floor(1 + Math.random() * 5));
+  const answers = Array.from({ length: QUESTION_COUNT }, () => Math.floor(1 + Math.random() * 5));
   const totalScore = answers.reduce((a, b) => a + b, 0);
-  const avgScore = Number((totalScore / QUESTIONS.length).toFixed(2));
+  const avgScore = Number((totalScore / QUESTION_COUNT).toFixed(2));
 
   await persistSubmission({
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     studentNo: randomNo,
     consentApproved: true,
+    lang: currentLang,
     answers,
     totalScore,
     avgScore,
@@ -692,23 +1138,25 @@ seedDemoBtn.addEventListener("click", async () => {
   });
 
   renderAdminStats(cachedSubmissions);
-  adminStatus.textContent = `Örnek öğrenci (${randomNo}) eklendi.`;
+  adminStatus.textContent = dict.statusDemoAdded(randomNo);
   seedDemoBtn.disabled = false;
 });
 
-// Tüm Verileri Resetleme Fonksiyonu (Hem üstteki hem alttaki Reset butonu için)
 async function handleResetAllData() {
-  const confirmed = window.confirm(
-    "TÜM öğrenci yanıtlarını tamamen sıfırlamak (resetlemek) istediğinize emin misiniz?"
-  );
+  const dict = t();
+  const confirmed = window.confirm(dict.confirmResetAll);
   if (!confirmed) return;
 
-  adminStatus.textContent = "Veriler sıfırlanıyor...";
+  adminStatus.textContent = dict.statusResetting;
   await clearAllSubmissions();
   studentDetailPanel.hidden = true;
+  currentlyViewedStudentId = null;
   renderAdminStats([]);
-  adminStatus.textContent = "Tüm veriler başarıyla sıfırlandı.";
+  adminStatus.textContent = dict.statusResetDone;
 }
 
 clearDataBtn.addEventListener("click", handleResetAllData);
 resetTopBtn.addEventListener("click", handleResetAllData);
+
+// İlk Yüklemede Seçili Dili Uygula
+setLanguage(currentLang);
