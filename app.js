@@ -346,6 +346,7 @@ const TEACHER_CODE = "001";
 const STUDENT_NO_REGEX = /^\d{11}$/;
 
 const LOCAL_STORAGE_KEY = "kaygi_olcegi_submissions_v2";
+const LOCAL_META_KEY = "kaygi_olcegi_meta_v2";
 const LANG_STORAGE_KEY = "kaygi_olcegi_lang_v1";
 const NTFY_TOPIC = "itopkapi_eray_kaygi_2026_prod";
 const NTFY_BASE_URL = `https://ntfy.sh/${NTFY_TOPIC}`;
@@ -585,29 +586,86 @@ function parseNtfyEnvelope(rawLine) {
   }
 }
 
+function getLocalMeta() {
+  try {
+    const raw = localStorage.getItem(LOCAL_META_KEY);
+    return raw ? JSON.parse(raw) : { lastResetTs: 0, deletedIds: [] };
+  } catch {
+    return { lastResetTs: 0, deletedIds: [] };
+  }
+}
+
+function saveLocalMeta(meta) {
+  try {
+    localStorage.setItem(LOCAL_META_KEY, JSON.stringify(meta));
+  } catch {
+    // localStorage kapalıysa devam et
+  }
+}
+
 function rebuildStateFromEvents() {
+  const meta = getLocalMeta();
+  let lastResetTs = Number(meta.lastResetTs || 0);
+  const deletedSet = new Set(Array.isArray(meta.deletedIds) ? meta.deletedIds : []);
+
   const allEvents = Array.from(processedEventIds.values()).sort((a, b) => {
     const tA = a.payload.ts || a.payload.entry?.timestamp || a.ntfyTime || 0;
     const tB = b.payload.ts || b.payload.entry?.timestamp || b.ntfyTime || 0;
     return tA - tB;
   });
 
-  let list = [];
+  // Önce bulut olaylarındaki en son reset zamanını ve silinen ID'leri tespit et
   for (const item of allEvents) {
     const p = item.payload;
-    if (p.op === "reset") {
-      list = [];
-    } else if (p.op === "submit" && p.entry && p.entry.studentNo) {
-      const cleanNo = String(p.entry.studentNo).trim();
-      list = list.filter((s) => String(s.studentNo).trim() !== cleanNo);
-      list.push(p.entry);
-    } else if (p.op === "delete") {
-      list = list.filter(
-        (s) => s.id !== p.id && String(s.studentNo).trim() !== String(p.studentNo || "").trim()
-      );
+    const evTs = Number(p.ts || item.ntfyTime || 0);
+    if (p.op === "reset" && evTs >= lastResetTs) {
+      lastResetTs = evTs;
+      deletedSet.clear();
+    } else if (p.op === "delete" && evTs >= lastResetTs && p.id) {
+      deletedSet.add(p.id);
     }
   }
 
+  // Yerel hafızadaki eski günlere ait (son reset'ten sonra oluşturulmuş) kayıtları koru
+  const byStudentNo = new Map();
+  const existingLocal = getLocalSubmissions();
+  for (const s of existingLocal) {
+    const sTs = Number(s?.timestamp || 0);
+    if (s && s.studentNo && sTs > lastResetTs && !deletedSet.has(s.id)) {
+      byStudentNo.set(String(s.studentNo).trim(), s);
+    }
+  }
+
+  // Bulut olaylarını sırayla uygula
+  for (const item of allEvents) {
+    const p = item.payload;
+    const evTs = Number(p.ts || p.entry?.timestamp || item.ntfyTime || 0);
+    if (evTs < lastResetTs) continue;
+
+    if (p.op === "reset") {
+      byStudentNo.clear();
+    } else if (p.op === "submit" && p.entry && p.entry.studentNo) {
+      if (!deletedSet.has(p.entry.id)) {
+        const cleanNo = String(p.entry.studentNo).trim();
+        const prev = byStudentNo.get(cleanNo);
+        if (!prev || Number(p.entry.timestamp || 0) >= Number(prev.timestamp || 0)) {
+          byStudentNo.set(cleanNo, p.entry);
+        }
+      }
+    } else if (p.op === "delete") {
+      for (const [k, val] of byStudentNo.entries()) {
+        if (val.id === p.id || (p.studentNo && k === String(p.studentNo).trim())) {
+          byStudentNo.delete(k);
+        }
+      }
+    }
+  }
+
+  const list = Array.from(byStudentNo.values()).sort(
+    (a, b) => Number(a.timestamp || 0) - Number(b.timestamp || 0)
+  );
+
+  saveLocalMeta({ lastResetTs, deletedIds: Array.from(deletedSet) });
   cachedSubmissions = list;
   saveLocalSubmissions(list);
   return list;
