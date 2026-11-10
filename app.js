@@ -5,11 +5,12 @@ const I18N = {
     pageTitle: "Kaygı Ölçeği Anketi",
     loginBadge: "Sunum Etkinliği • 20 Soru",
     loginHeading: "Kaygı Ölçeği Anketi",
-    loginSubtitle: "Lütfen başlamak için okul numaranızı giriniz ve aydınlatma onay kutucuğunu işaretleyiniz.",
-    labelStudentNo: "Okul Numaranız",
-    placeholderStudentNo: "Örn: 20231045",
-    hintStudentNo: "Ankete katılmak için öğrenci numaranızı yazınız.",
-    errStudentNo: "Lütfen okul numaranızı giriniz.",
+    loginSubtitle: "Lütfen başlamak için 11 haneli okul numaranızı giriniz ve aydınlatma onay kutucuğunu işaretleyiniz.",
+    labelStudentNo: "Okul Numaranız (11 Haneli)",
+    placeholderStudentNo: "Örn: 20231045123",
+    hintStudentNo: "Ankete katılmak için 11 haneli öğrenci numaranızı yazınız.",
+    errStudentNoEmpty: "Lütfen okul numaranızı giriniz.",
+    errStudentNoFormat: "Öğrenci numarası tam 11 haneli bir sayı olmalıdır.",
     labelConsent: "Verilerimin ve cevaplarımın bu proje hakkında işlenip kullanılmasını onaylıyorum.",
     errConsent: "Devam etmek için lütfen onay kutucuğunu işaretleyiniz.",
     startBtn: "Ankete Başla",
@@ -31,7 +32,8 @@ const I18N = {
     thanksHeading: "Katılımınız İçin Teşekkür Ederiz!",
     thanksSubtitle: "Yanıtlarınız başarıyla kaydedilmiştir. Sunumu dinlemeye devam edebilirsiniz.",
     returnHomeBtn: "Giriş Ekranına Dön",
-    adminBadge: "Canlı Sunum Paneli",
+    adminBadge: "Canlı Sunum Paneli (Yönetici)",
+    adminBadgeReadOnly: "Canlı Sonuç Paneli (Salt Okunur - 001)",
     adminHeading: "Sınıf Kaygı Seviyesi Dağılımı",
     refreshBtn: "↻ Yenile",
     resetAllBtn: "🗑 Tüm Verileri Resetle",
@@ -56,6 +58,7 @@ const I18N = {
     quintileStudentSuffix: "öğrenci",
     studentsTableTitle: "Kişi Bazlı (Öğrenci No) Sonuçlar",
     studentsTableNote: "Öğrenci sonuçlarını inceleyebilir, cevap detaylarını görebilir veya tek tek silebilirsiniz.",
+    studentsTableNoteReadOnly: "Öğrenci sonuçlarını ve cevap detaylarını görüntüleyebilirsiniz (Salt okunur görünüm).",
     exportCsvBtn: "⬇ Excel (CSV) İndir",
     seedDemoBtn: "+ Test Verisi Ekle",
     filterPlaceholder: "Öğrenci numarası ile ara (Örn: 2023...)",
@@ -115,11 +118,12 @@ const I18N = {
     pageTitle: "Anxiety Scale Survey",
     loginBadge: "Presentation Activity • 20 Questions",
     loginHeading: "Anxiety Scale Survey",
-    loginSubtitle: "Please enter your student ID and check the consent box below to begin.",
-    labelStudentNo: "Student ID Number",
-    placeholderStudentNo: "e.g., 20231045",
-    hintStudentNo: "Enter your student number to participate in the survey.",
-    errStudentNo: "Please enter your student ID number.",
+    loginSubtitle: "Please enter your 11-digit student ID and check the consent box below to begin.",
+    labelStudentNo: "Student ID Number (11 Digits)",
+    placeholderStudentNo: "e.g., 20231045123",
+    hintStudentNo: "Enter your 11-digit student number to participate in the survey.",
+    errStudentNoEmpty: "Please enter your student ID number.",
+    errStudentNoFormat: "Student ID must be an 11-digit number.",
     labelConsent: "I consent to the processing and use of my data and responses for this project.",
     errConsent: "Please check the consent box to continue.",
     startBtn: "Start Survey",
@@ -141,7 +145,8 @@ const I18N = {
     thanksHeading: "Thank You for Your Participation!",
     thanksSubtitle: "Your responses have been successfully recorded. You may continue following the presentation.",
     returnHomeBtn: "Return to Home",
-    adminBadge: "Live Presentation Dashboard",
+    adminBadge: "Live Presentation Dashboard (Admin)",
+    adminBadgeReadOnly: "Live Results Dashboard (Read-Only - 001)",
     adminHeading: "Class Anxiety Level Distribution",
     refreshBtn: "↻ Refresh",
     resetAllBtn: "🗑 Reset All Data",
@@ -166,6 +171,7 @@ const I18N = {
     quintileStudentSuffix: "students",
     studentsTableTitle: "Individual Student Results",
     studentsTableNote: "Inspect individual student scores, view question-by-question answers, or delete single entries.",
+    studentsTableNoteReadOnly: "You can view student scores and question-by-question answers (Read-only mode).",
     exportCsvBtn: "⬇ Export Excel (CSV)",
     seedDemoBtn: "+ Add Demo Data",
     filterPlaceholder: "Filter by Student ID (e.g., 2023...)",
@@ -225,11 +231,12 @@ const I18N = {
     pageTitle: "استبيان مقياس القلق",
     loginBadge: "نشاط العرض التقديمي • 20 سؤالاً",
     loginHeading: "استبيان مقياس القلق",
-    loginSubtitle: "يرجى إدخال رقمك الجامعي وتحديد مربع الموافقة أدناه للبدء.",
-    labelStudentNo: "الرقم الجامعي / المدرسي",
-    placeholderStudentNo: "مثال: 20231045",
-    hintStudentNo: "أدخل رقمك الطلابي للمشاركة في الاستبيان.",
-    errStudentNo: "يرجى إدخال رقمك الطلابي.",
+    loginSubtitle: "يرجى إدخال رقمك الجامعي المكون من 11 رقماً وتحديد مربع الموافقة أدناه للبدء.",
+    labelStudentNo: "الرقم الجامعي (11 رقماً)",
+    placeholderStudentNo: "مثال: 20231045123",
+    hintStudentNo: "أدخل رقمك الطلابي المكون من 11 رقماً للمشاركة في الاستبيان.",
+    errStudentNoEmpty: "يرجى إدخال رقمك الطلابي.",
+    errStudentNoFormat: "يجب أن يتكون الرقم الجامعي من 11 رقماً بالضبط.",
     labelConsent: "أوافق على معالجة واستخدام بياناتي وإجاباتي في إطار هذا المشروع.",
     errConsent: "يرجى تحديد مربع الموافقة للمتابعة.",
     startBtn: "ابدأ الاستبيان",
@@ -251,7 +258,8 @@ const I18N = {
     thanksHeading: "شكراً لمشاركتكم!",
     thanksSubtitle: "تم حفظ إجاباتكم بنجاح. يمكنكم متابعة الاستماع إلى العرض التقديمي.",
     returnHomeBtn: "العودة إلى صفحة البداية",
-    adminBadge: "لوحة العرض المباشر",
+    adminBadge: "لوحة العرض المباشر (المشرف)",
+    adminBadgeReadOnly: "لوحة النتائج المباشرة (للقراءة فقط - 001)",
     adminHeading: "توزيع مستويات القلق في الصف",
     refreshBtn: "↻ تحديث",
     resetAllBtn: "🗑 تصفير جميع البيانات",
@@ -276,6 +284,7 @@ const I18N = {
     quintileStudentSuffix: "طالب",
     studentsTableTitle: "النتائج الفردية حسب رقم الطالب",
     studentsTableNote: "يمكنك استعراض نتائج الطلاب، أو عرض تفاصيل الإجابات، أو حذف كل طالب على حدة.",
+    studentsTableNoteReadOnly: "يمكنك استعراض نتائج الطلاب وتفاصيل إجاباتهم (وضع القراءة فقط).",
     exportCsvBtn: "⬇ تحميل ملف Excel (CSV)",
     seedDemoBtn: "+ إضافة بيانات تجريبية",
     filterPlaceholder: "ابحث برقم الطالب (مثال: 2023...)",
@@ -333,6 +342,9 @@ const I18N = {
 
 const QUESTION_COUNT = 20;
 const ADMIN_PASSWORDS = ["sunum-falan-filan", "(sunum-falan-filan)"];
+const TEACHER_CODE = "001";
+const STUDENT_NO_REGEX = /^\d{11}$/;
+
 const LOCAL_STORAGE_KEY = "kaygi_olcegi_submissions_v1";
 const LANG_STORAGE_KEY = "kaygi_olcegi_lang_v1";
 const CLOUD_STORE_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a1c42e500a7993";
@@ -342,6 +354,8 @@ let currentLang = localStorage.getItem(LANG_STORAGE_KEY) || "tr";
 if (!I18N[currentLang]) currentLang = "tr";
 
 let currentStudentNo = "";
+let isTeacherSession = false;
+let isAdminReadOnly = false;
 let currentQuestionIndex = 0;
 let userAnswers = new Array(QUESTION_COUNT).fill(null);
 let cachedSubmissions = [];
@@ -423,7 +437,7 @@ function setLanguage(lang) {
   startBtn.textContent = dict.startBtn;
 
   if (studentNoInput.getAttribute("aria-invalid") === "true") {
-    studentNoError.textContent = dict.errStudentNo;
+    validateStudentNo();
   }
   if (consentCheck.getAttribute("aria-invalid") === "true") {
     consentError.textContent = dict.errConsent;
@@ -447,7 +461,7 @@ function setLanguage(lang) {
   returnHomeBtn.textContent = dict.returnHomeBtn;
 
   // Admin Paneli Metinleri
-  document.getElementById("admin-badge").textContent = dict.adminBadge;
+  updateAdminPermissionsUI();
   document.getElementById("admin-heading").textContent = dict.adminHeading;
   refreshAdminBtn.textContent = dict.refreshBtn;
   resetTopBtn.textContent = dict.resetAllBtn;
@@ -471,7 +485,6 @@ function setLanguage(lang) {
 
   document.getElementById("quintile-title").textContent = dict.quintileTitle;
   document.getElementById("students-table-title").textContent = dict.studentsTableTitle;
-  document.getElementById("students-table-note").textContent = dict.studentsTableNote;
   exportCsvBtn.textContent = dict.exportCsvBtn;
   seedDemoBtn.textContent = dict.seedDemoBtn;
   clearDataBtn.textContent = dict.resetAllBtn;
@@ -492,6 +505,22 @@ function setLanguage(lang) {
       if (st) showStudentDetails(st, false);
     }
   }
+}
+
+function updateAdminPermissionsUI() {
+  const dict = t();
+  document.getElementById("admin-badge").textContent = isAdminReadOnly
+    ? dict.adminBadgeReadOnly
+    : dict.adminBadge;
+  document.getElementById("students-table-note").textContent = isAdminReadOnly
+    ? dict.studentsTableNoteReadOnly
+    : dict.studentsTableNote;
+
+  // 001 (Hoca / Salt Okunur) modunda veri değiştirme ve silme butonlarını tamamen gizle
+  resetTopBtn.hidden = isAdminReadOnly;
+  clearDataBtn.hidden = isAdminReadOnly;
+  seedDemoBtn.hidden = isAdminReadOnly;
+  exportCsvBtn.hidden = isAdminReadOnly;
 }
 
 langButtons.forEach((btn) => {
@@ -609,25 +638,42 @@ async function persistSubmission(newEntry) {
 }
 
 async function deleteSingleSubmission(targetId) {
+  if (isAdminReadOnly) return;
   const currentList = await fetchAllSubmissions();
   const updatedList = currentList.filter((item) => item.id !== targetId);
   await syncSubmissionListEverywhere(updatedList);
 }
 
 async function clearAllSubmissions() {
+  if (isAdminReadOnly) return;
   await syncSubmissionListEverywhere([]);
 }
 
-// --- ADIM 1: GİRİŞ DOĞRULAMA (OKUL NO + ONAY KUTUSU) ---
+// --- ADIM 1: GİRİŞ DOĞRULAMA (11 HANE KURALI + ADMIN & 001 İSTİSNASI) ---
+function isSpecialEntry(val) {
+  const lower = val.toLowerCase();
+  return ADMIN_PASSWORDS.includes(lower) || val === TEACHER_CODE;
+}
+
 function validateStudentNo() {
   const val = studentNoInput.value.trim();
   const dict = t();
+
   if (!val) {
-    studentNoInput.setCustomValidity(dict.errStudentNo);
+    studentNoInput.setCustomValidity(dict.errStudentNoEmpty);
     studentNoInput.setAttribute("aria-invalid", "true");
-    studentNoError.textContent = dict.errStudentNo;
+    studentNoError.textContent = dict.errStudentNoEmpty;
     return false;
   }
+
+  // Admin ("Sunum-Falan-Filan") ve Hoca ("001") 11 hane kuralından muaftır
+  if (!isSpecialEntry(val) && !STUDENT_NO_REGEX.test(val)) {
+    studentNoInput.setCustomValidity(dict.errStudentNoFormat);
+    studentNoInput.setAttribute("aria-invalid", "true");
+    studentNoError.textContent = dict.errStudentNoFormat;
+    return false;
+  }
+
   studentNoInput.setCustomValidity("");
   studentNoInput.removeAttribute("aria-invalid");
   studentNoError.textContent = "";
@@ -679,21 +725,24 @@ loginForm.addEventListener("submit", async (e) => {
 
   const entered = studentNoInput.value.trim();
 
-  // Gizli Admin Paneli Kontrolü: "Sunum-Falan-Filan"
+  // 1) Gizli Admin Paneli Kontrolü: "Sunum-Falan-Filan" (Tam Yetkili)
   if (ADMIN_PASSWORDS.includes(entered.toLowerCase())) {
     studentNoInput.value = "";
     consentError.textContent = "";
     consentCheck.removeAttribute("aria-invalid");
-    openAdminPanel();
+    isTeacherSession = false;
+    openAdminPanel(false);
     return;
   }
 
-  // Normal Öğrenci Girişinde Onay Kutucuğu Zorunludur
+  // 2) Normal Öğrenci ve Hoca ("001") Girişinde Onay Kutucuğu Kontrolü
   if (!validateConsent()) {
     consentCheck.focus();
     return;
   }
 
+  // Hoca ("001") girişi mi yoksa 11 haneli öğrenci girişi mi?
+  isTeacherSession = entered === TEACHER_CODE;
   currentStudentNo = entered;
   currentQuestionIndex = 0;
   userAnswers = new Array(QUESTION_COUNT).fill(null);
@@ -788,19 +837,25 @@ questionForm.addEventListener("submit", async (e) => {
     };
 
     await persistSubmission(entry);
-
     nextBtn.disabled = false;
-    showSection(stepThanks, "thanks-heading");
+
+    // Eğer "001" (Hoca) anketi tamamladıysa doğrudan Salt Okunur Admin Panelini aç
+    if (isTeacherSession) {
+      openAdminPanel(true);
+    } else {
+      showSection(stepThanks, "thanks-heading");
+    }
   }
 });
 
 returnHomeBtn.addEventListener("click", () => {
   studentNoInput.value = "";
   consentCheck.checked = false;
+  isTeacherSession = false;
   showSection(stepLogin, "login-heading");
 });
 
-// --- ADIM 4: GİZLİ ADMİN PANELİ, KİŞİ BAZLI SONUÇLAR VE SİLME ---
+// --- ADIM 4: ADMİN PANELİ (TAM YETKİLİ VEYA 001 SALT OKUNUR) ---
 function getTierInfo(score) {
   const dict = t();
   if (score <= 46) {
@@ -821,7 +876,9 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
-async function openAdminPanel() {
+async function openAdminPanel(readOnlyMode = false) {
+  isAdminReadOnly = Boolean(readOnlyMode);
+  updateAdminPermissionsUI();
   studentDetailPanel.hidden = true;
   currentlyViewedStudentId = null;
   showSection(stepAdmin, "admin-heading");
@@ -925,6 +982,18 @@ function renderStudentTable(submissions) {
       const tier = getTierInfo(Number(item.totalScore));
       const safeId = escapeHtml(item.id);
       const safeNo = escapeHtml(item.studentNo);
+      const deleteBtnHtml = isAdminReadOnly
+        ? ""
+        : `<button
+            type="button"
+            class="btn btn-danger btn-xs"
+            data-action="delete"
+            data-id="${safeId}"
+            data-no="${safeNo}"
+          >
+            ${escapeHtml(dict.btnDelete)}
+          </button>`;
+
       return `
         <tr>
           <td>${filtered.length - idx}</td>
@@ -943,15 +1012,7 @@ function renderStudentTable(submissions) {
               >
                 ${escapeHtml(dict.btnViewAnswers)}
               </button>
-              <button
-                type="button"
-                class="btn btn-danger btn-xs"
-                data-action="delete"
-                data-id="${safeId}"
-                data-no="${safeNo}"
-              >
-                ${escapeHtml(dict.btnDelete)}
-              </button>
+              ${deleteBtnHtml}
             </div>
           </td>
         </tr>
@@ -980,6 +1041,7 @@ adminTableBody.addEventListener("click", async (e) => {
   }
 
   if (action === "delete") {
+    if (isAdminReadOnly) return;
     const studentNo = btn.getAttribute("data-no") || "";
     const ok = window.confirm(dict.confirmDeleteSingle(studentNo));
     if (!ok) return;
@@ -1066,11 +1128,16 @@ refreshAdminBtn.addEventListener("click", () => {
 exitAdminBtn.addEventListener("click", () => {
   studentDetailPanel.hidden = true;
   currentlyViewedStudentId = null;
+  isTeacherSession = false;
+  isAdminReadOnly = false;
+  studentNoInput.value = "";
+  consentCheck.checked = false;
   showSection(stepLogin, "login-heading");
 });
 
 // Excel (CSV) İndirme
 exportCsvBtn.addEventListener("click", async () => {
+  if (isAdminReadOnly) return;
   const dict = t();
   const submissions = await fetchAllSubmissions();
   if (submissions.length === 0) {
@@ -1118,9 +1185,10 @@ exportCsvBtn.addEventListener("click", async () => {
 
 // Sunum Öncesi Test İçin Örnek Veri Ekleme
 seedDemoBtn.addEventListener("click", async () => {
+  if (isAdminReadOnly) return;
   const dict = t();
   seedDemoBtn.disabled = true;
-  const randomNo = `2023${Math.floor(1000 + Math.random() * 9000)}`;
+  const randomNo = `2023${Math.floor(1000000 + Math.random() * 9000000)}`;
   const answers = Array.from({ length: QUESTION_COUNT }, () => Math.floor(1 + Math.random() * 5));
   const totalScore = answers.reduce((a, b) => a + b, 0);
   const avgScore = Number((totalScore / QUESTION_COUNT).toFixed(2));
@@ -1143,6 +1211,7 @@ seedDemoBtn.addEventListener("click", async () => {
 });
 
 async function handleResetAllData() {
+  if (isAdminReadOnly) return;
   const dict = t();
   const confirmed = window.confirm(dict.confirmResetAll);
   if (!confirmed) return;
