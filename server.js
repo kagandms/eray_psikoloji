@@ -58,6 +58,26 @@ const server = http.createServer((req, res) => {
       return;
     }
 
+    if (req.method === "PUT") {
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk;
+      });
+      req.on("end", () => {
+        try {
+          const payload = JSON.parse(body);
+          const submissions = Array.isArray(payload.submissions) ? payload.submissions : [];
+          writeData({ submissions });
+          res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+          res.end(JSON.stringify({ ok: true }));
+        } catch {
+          res.writeHead(400, { "Content-Type": "application/json; charset=utf-8" });
+          res.end(JSON.stringify({ error: "Invalid JSON" }));
+        }
+      });
+      return;
+    }
+
     if (req.method === "DELETE") {
       writeData({ submissions: [] });
       res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });

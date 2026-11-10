@@ -22,6 +22,14 @@ const QUESTIONS = [
   "Kaygılarımın günlük yaşam kalitemi olumsuz etkilediğini düşünürüm."
 ];
 
+const LIKERT_LABELS = {
+  1: "Kesinlikle katılmıyorum (1)",
+  2: "Katılmıyorum (2)",
+  3: "Kararsızım (3)",
+  4: "Katılıyorum (4)",
+  5: "Kesinlikle katılıyorum (5)"
+};
+
 const ADMIN_PASSWORDS = ["sunum-falan-filan", "(sunum-falan-filan)"];
 const LOCAL_STORAGE_KEY = "kaygi_olcegi_submissions_v1";
 const CLOUD_STORE_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a1c42e500a7993";
@@ -30,6 +38,7 @@ const CLOUD_STORE_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a
 let currentStudentNo = "";
 let currentQuestionIndex = 0;
 let userAnswers = new Array(QUESTIONS.length).fill(null);
+let cachedSubmissions = [];
 let adminPollTimer = null;
 
 // DOM Referansları
@@ -41,6 +50,8 @@ const stepAdmin = document.getElementById("step-admin");
 const loginForm = document.getElementById("login-form");
 const studentNoInput = document.getElementById("student-no");
 const studentNoError = document.getElementById("student-no-error");
+const consentCheck = document.getElementById("consent-check");
+const consentError = document.getElementById("consent-error");
 
 const questionForm = document.getElementById("question-form");
 const questionCounter = document.getElementById("question-counter");
@@ -54,20 +65,23 @@ const radioInputs = Array.from(document.querySelectorAll('input[name="answer"]')
 
 const returnHomeBtn = document.getElementById("return-home-btn");
 const refreshAdminBtn = document.getElementById("refresh-admin-btn");
+const resetTopBtn = document.getElementById("reset-top-btn");
 const exitAdminBtn = document.getElementById("exit-admin-btn");
 const exportCsvBtn = document.getElementById("export-csv-btn");
 const seedDemoBtn = document.getElementById("seed-demo-btn");
 const clearDataBtn = document.getElementById("clear-data-btn");
+const studentFilterInput = document.getElementById("student-filter");
+const adminTableBody = document.getElementById("admin-table-body");
+const studentDetailPanel = document.getElementById("student-detail-panel");
+const detailStudentTitle = document.getElementById("detail-student-title");
+const detailAnswersList = document.getElementById("detail-answers-list");
+const closeDetailBtn = document.getElementById("close-detail-btn");
 const adminStatus = document.getElementById("admin-status");
 
 // --- EKRAN GEÇİŞ YÖNETİMİ ---
 function showSection(targetSection, headingId) {
   [stepLogin, stepSurvey, stepThanks, stepAdmin].forEach((sec) => {
-    if (sec === targetSection) {
-      sec.hidden = false;
-    } else {
-      sec.hidden = true;
-    }
+    sec.hidden = sec !== targetSection;
   });
 
   if (targetSection !== stepAdmin && adminPollTimer) {
@@ -81,7 +95,7 @@ function showSection(targetSection, headingId) {
   }
 }
 
-// --- VERİ SAKLAMA (YEREL + SUNUCU + BULUT SENKRONİZASYON) ---
+// --- VERİ SAKLAMA (BULUT + SUNUCU + YEREL YEDEK) ---
 function getLocalSubmissions() {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -95,125 +109,98 @@ function saveLocalSubmissions(list) {
   try {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(list));
   } catch {
-    // localStorage dolu veya kapalıysa sessizce devam et
+    // localStorage kapalıysa sessizce devam et
   }
-}
-
-function mergeSubmissions(listA, listB) {
-  const map = new Map();
-  [...listA, ...listB].forEach((item) => {
-    if (item && item.id) {
-      map.set(item.id, item);
-    }
-  });
-  return Array.from(map.values()).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 }
 
 async function fetchAllSubmissions() {
-  let localList = getLocalSubmissions();
-
-  // 1. Yerel Node sunucusu (/api/responses) varsa oradan çek
-  try {
-    const res = await fetch("/api/responses", { cache: "no-store" });
-    if (res.ok) {
-      const serverData = await res.json();
-      if (Array.isArray(serverData.submissions)) {
-        localList = mergeSubmissions(localList, serverData.submissions);
-        saveLocalSubmissions(localList);
-      }
-    }
-  } catch {
-    // Statik barındırma (Vercel / Netlify) modunda yerel API olmayabilir
-  }
-
-  // 2. Bulut deposundan çek ve birleştir
+  // 1. Önce Bulut Deposundan (Ana Kaynak) çekmeyi dene
   try {
     const cloudRes = await fetch(CLOUD_STORE_URL, { cache: "no-store" });
     if (cloudRes.ok) {
       const cloudObj = await cloudRes.json();
       const cloudList = cloudObj?.data?.submissions;
       if (Array.isArray(cloudList)) {
-        localList = mergeSubmissions(localList, cloudList);
-        saveLocalSubmissions(localList);
+        saveLocalSubmissions(cloudList);
+        cachedSubmissions = cloudList;
+        return cloudList;
       }
     }
   } catch {
-    // Çevrimdışı durumda yerel yedek kullanılır
+    // Bulut erişimi yoksa yerel sunucu veya localStorage'a düş
   }
 
-  return localList;
-}
-
-async function persistSubmission(newEntry) {
-  // Önce yerel yedeğe ekle
-  const currentLocal = getLocalSubmissions();
-  // Aynı öğrenci numarası daha önce girdiyse güncelle veya yeni ekle
-  const filtered = currentLocal.filter((item) => item.studentNo !== newEntry.studentNo);
-  const updatedLocal = [...filtered, newEntry];
-  saveLocalSubmissions(updatedLocal);
-
-  // Yerel Node sunucusuna kaydetmeyi dene
+  // 2. Yerel Node sunucusu (/api/responses) varsa oradan çek
   try {
-    await fetch("/api/responses", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newEntry)
-    });
-  } catch {
-    // Statik ortamda devam et
-  }
-
-  // Bulut deposuna kaydet
-  try {
-    const cloudRes = await fetch(CLOUD_STORE_URL, { cache: "no-store" });
-    let cloudList = [];
-    if (cloudRes.ok) {
-      const cloudObj = await cloudRes.json();
-      if (Array.isArray(cloudObj?.data?.submissions)) {
-        cloudList = cloudObj.data.submissions;
+    const res = await fetch("/api/responses", { cache: "no-store" });
+    if (res.ok) {
+      const serverData = await res.json();
+      if (Array.isArray(serverData.submissions)) {
+        saveLocalSubmissions(serverData.submissions);
+        cachedSubmissions = serverData.submissions;
+        return serverData.submissions;
       }
     }
-    const merged = mergeSubmissions(cloudList, updatedLocal).filter(
-      (item, idx, arr) =>
-        arr.findIndex((x) => x.studentNo === item.studentNo && x.id !== item.id) === -1 ||
-        item.id === newEntry.id
-    );
-
-    await fetch(CLOUD_STORE_URL, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: "kaygi-olcegi-store",
-        data: { submissions: merged }
-      })
-    });
-  } catch {
-    // Bulut erişimi yoksa yerel kayıt korunur
-  }
-}
-
-async function clearAllSubmissions() {
-  saveLocalSubmissions([]);
-  try {
-    await fetch("/api/responses", { method: "DELETE" });
   } catch {
     // Statik mod
   }
+
+  const fallback = getLocalSubmissions();
+  cachedSubmissions = fallback;
+  return fallback;
+}
+
+async function syncSubmissionListEverywhere(updatedList) {
+  cachedSubmissions = updatedList;
+  saveLocalSubmissions(updatedList);
+
+  // Bulut deposunu güncelle
   try {
     await fetch(CLOUD_STORE_URL, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: "kaygi-olcegi-store",
-        data: { submissions: [] }
+        data: { submissions: updatedList }
       })
     });
   } catch {
     // Bulut hatası
   }
+
+  // Yerel Node sunucusu varsa onu da senkronize et
+  try {
+    await fetch("/api/responses", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ submissions: updatedList })
+    });
+  } catch {
+    // Statik ortam
+  }
 }
 
-// --- ADIM 1: GİRİŞ DOĞRULAMA VE YÖNLENDİRME ---
+async function persistSubmission(newEntry) {
+  const currentList = await fetchAllSubmissions();
+  // Aynı öğrenci numarası varsa üzerine yaz, yoksa ekle
+  const filtered = currentList.filter(
+    (item) => String(item.studentNo).trim() !== String(newEntry.studentNo).trim()
+  );
+  const updatedList = [...filtered, newEntry];
+  await syncSubmissionListEverywhere(updatedList);
+}
+
+async function deleteSingleSubmission(targetId) {
+  const currentList = await fetchAllSubmissions();
+  const updatedList = currentList.filter((item) => item.id !== targetId);
+  await syncSubmissionListEverywhere(updatedList);
+}
+
+async function clearAllSubmissions() {
+  await syncSubmissionListEverywhere([]);
+}
+
+// --- ADIM 1: GİRİŞ DOĞRULAMA (OKUL NO + ONAY KUTUSU) ---
 function validateStudentNo() {
   const val = studentNoInput.value.trim();
   if (!val) {
@@ -225,6 +212,19 @@ function validateStudentNo() {
   studentNoInput.setCustomValidity("");
   studentNoInput.removeAttribute("aria-invalid");
   studentNoError.textContent = "";
+  return true;
+}
+
+function validateConsent() {
+  if (!consentCheck.checked) {
+    consentCheck.setCustomValidity("Ankete katılmak için onay kutucuğunu işaretlemelisiniz.");
+    consentCheck.setAttribute("aria-invalid", "true");
+    consentError.textContent = "Devam etmek için lütfen onay kutucuğunu işaretleyiniz.";
+    return false;
+  }
+  consentCheck.setCustomValidity("");
+  consentCheck.removeAttribute("aria-invalid");
+  consentError.textContent = "";
   return true;
 }
 
@@ -242,6 +242,14 @@ studentNoInput.addEventListener("blur", () => {
   }
 });
 
+consentCheck.addEventListener("change", () => {
+  if (consentCheck.checked) {
+    consentCheck.setCustomValidity("");
+    consentCheck.removeAttribute("aria-invalid");
+    consentError.textContent = "";
+  }
+});
+
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!validateStudentNo()) {
@@ -251,14 +259,21 @@ loginForm.addEventListener("submit", async (e) => {
 
   const entered = studentNoInput.value.trim();
 
-  // Gizli Admin Paneli Kontrolü: "Sunum-Falan-Filan"
+  // Gizli Admin Paneli Kontrolü: "Sunum-Falan-Filan" (Onay kutusu şartı aranmaz)
   if (ADMIN_PASSWORDS.includes(entered.toLowerCase())) {
     studentNoInput.value = "";
+    consentError.textContent = "";
+    consentCheck.removeAttribute("aria-invalid");
     openAdminPanel();
     return;
   }
 
-  // Normal Öğrenci Girişi
+  // Normal Öğrenci Girişinde Onay Kutucuğu Zorunludur
+  if (!validateConsent()) {
+    consentCheck.focus();
+    return;
+  }
+
   currentStudentNo = entered;
   currentQuestionIndex = 0;
   userAnswers = new Array(QUESTIONS.length).fill(null);
@@ -328,7 +343,6 @@ questionForm.addEventListener("submit", async (e) => {
     renderCurrentQuestion();
     questionHeading.focus();
   } else {
-    // 20 Soru Tamamlandı -> Kaydet ve Teşekkür Ekranına Geç
     nextBtn.disabled = true;
     nextBtn.textContent = "Kaydediliyor...";
 
@@ -338,6 +352,7 @@ questionForm.addEventListener("submit", async (e) => {
     const entry = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       studentNo: currentStudentNo,
+      consentApproved: true,
       answers: [...userAnswers],
       totalScore,
       avgScore,
@@ -357,10 +372,11 @@ questionForm.addEventListener("submit", async (e) => {
 
 returnHomeBtn.addEventListener("click", () => {
   studentNoInput.value = "";
+  consentCheck.checked = false;
   showSection(stepLogin, "login-heading");
 });
 
-// --- ADIM 4: GİZLİ ADMİN PANELİ VE YÜZDELİK DİLİM HESAPLAMA ---
+// --- ADIM 4: GİZLİ ADMİN PANELİ, KİŞİ BAZLI SONUÇLAR VE SİLME ---
 function getTierInfo(score) {
   if (score <= 46) {
     return { key: "low", label: "Düşük Dilim (20–46)", pillClass: "pill-low" };
@@ -381,6 +397,7 @@ function escapeHtml(str) {
 }
 
 async function openAdminPanel() {
+  studentDetailPanel.hidden = true;
   showSection(stepAdmin, "admin-heading");
   await refreshAdminData();
 
@@ -393,7 +410,7 @@ async function refreshAdminData() {
   adminStatus.textContent = "Veriler güncelleniyor...";
   const submissions = await fetchAllSubmissions();
   renderAdminStats(submissions);
-  adminStatus.textContent = `Son güncelleme: ${new Date().toLocaleTimeString("tr-TR")} • Veriler otomatik senkronize ediliyor.`;
+  adminStatus.textContent = `Son güncelleme: ${new Date().toLocaleTimeString("tr-TR")} • Toplam ${submissions.length} kayıt.`;
 }
 
 function renderAdminStats(submissions) {
@@ -411,8 +428,7 @@ function renderAdminStats(submissions) {
     });
 
     renderQuintiles([]);
-    document.getElementById("admin-table-body").innerHTML =
-      '<tr><td colspan="6" class="empty-row">Henüz ankete katılan öğrenci bulunmuyor.</td></tr>';
+    renderStudentTable([]);
     return;
   }
 
@@ -451,28 +467,126 @@ function renderAdminStats(submissions) {
   document.getElementById("count-high").textContent = `(${highCount} kişi)`;
   document.getElementById("bar-high").style.width = `${highPct}%`;
 
-  // 5'li Detaylı Dilim
   renderQuintiles(submissions);
+  renderStudentTable(submissions);
+}
 
-  // Öğrenci Tablosu (En son katılan en üstte)
-  const tbody = document.getElementById("admin-table-body");
-  const reversed = [...submissions].reverse();
-  tbody.innerHTML = reversed
+function renderStudentTable(submissions) {
+  const query = (studentFilterInput?.value || "").trim().toLowerCase();
+  const filtered = query
+    ? submissions.filter((s) => String(s.studentNo).toLowerCase().includes(query))
+    : submissions;
+
+  if (filtered.length === 0) {
+    adminTableBody.innerHTML = `
+      <tr>
+        <td colspan="7" class="empty-row">
+          ${query ? "Aranan öğrenci numarasına ait sonuç bulunamadı." : "Henüz ankete katılan öğrenci bulunmuyor."}
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const reversed = [...filtered].reverse();
+  adminTableBody.innerHTML = reversed
     .map((item, idx) => {
       const tier = getTierInfo(Number(item.totalScore));
+      const safeId = escapeHtml(item.id);
+      const safeNo = escapeHtml(item.studentNo);
       return `
         <tr>
-          <td>${totalCount - idx}</td>
-          <td><strong>${escapeHtml(item.studentNo)}</strong></td>
+          <td>${filtered.length - idx}</td>
+          <td><strong>${safeNo}</strong></td>
           <td><strong>${Number(item.totalScore)}</strong> / 100</td>
           <td>${Number(item.avgScore).toFixed(2)} / 5</td>
           <td><span class="pill ${tier.pillClass}">${tier.label}</span></td>
           <td>${escapeHtml(item.dateStr || "-")}</td>
+          <td>
+            <div class="row-actions">
+              <button
+                type="button"
+                class="btn btn-secondary btn-xs"
+                data-action="view"
+                data-id="${safeId}"
+              >
+                🔍 Cevaplar
+              </button>
+              <button
+                type="button"
+                class="btn btn-danger btn-xs"
+                data-action="delete"
+                data-id="${safeId}"
+                data-no="${safeNo}"
+              >
+                🗑 Sil
+              </button>
+            </div>
+          </td>
         </tr>
       `;
     })
     .join("");
 }
+
+studentFilterInput.addEventListener("input", () => {
+  renderStudentTable(cachedSubmissions);
+});
+
+// Tablo içi "Cevaplar" (Detay Gör) ve "Sil" (Tekil Silme) Butonları
+adminTableBody.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+
+  const action = btn.getAttribute("data-action");
+  const targetId = btn.getAttribute("data-id");
+
+  if (action === "view") {
+    const student = cachedSubmissions.find((s) => s.id === targetId);
+    if (!student) return;
+    showStudentDetails(student);
+    return;
+  }
+
+  if (action === "delete") {
+    const studentNo = btn.getAttribute("data-no") || "";
+    const ok = window.confirm(
+      `"${studentNo}" numaralı öğrencinin kaydını silmek istediğinize emin misiniz?`
+    );
+    if (!ok) return;
+
+    btn.disabled = true;
+    btn.textContent = "Siliniyor...";
+    await deleteSingleSubmission(targetId);
+    studentDetailPanel.hidden = true;
+    renderAdminStats(cachedSubmissions);
+    adminStatus.textContent = `"${studentNo}" numaralı öğrencinin kaydı silindi.`;
+  }
+});
+
+function showStudentDetails(student) {
+  const tier = getTierInfo(Number(student.totalScore));
+  detailStudentTitle.textContent = `Öğrenci No: ${student.studentNo} • Toplam Puan: ${student.totalScore}/100 (${tier.label})`;
+
+  const answers = Array.isArray(student.answers) ? student.answers : [];
+  detailAnswersList.innerHTML = QUESTIONS.map((qText, i) => {
+    const val = answers[i];
+    const valText = LIKERT_LABELS[val] || `Puan: ${val ?? "-"}`;
+    return `
+      <div class="detail-answer-card">
+        <span class="detail-q-text"><strong>Soru ${i + 1}:</strong> ${escapeHtml(qText)}</span>
+        <span class="detail-a-val">Yanıt: ${escapeHtml(valText)}</span>
+      </div>
+    `;
+  }).join("");
+
+  studentDetailPanel.hidden = false;
+  detailStudentTitle.focus();
+}
+
+closeDetailBtn.addEventListener("click", () => {
+  studentDetailPanel.hidden = true;
+});
 
 function renderQuintiles(submissions) {
   const ranges = [
@@ -508,6 +622,7 @@ refreshAdminBtn.addEventListener("click", () => {
 });
 
 exitAdminBtn.addEventListener("click", () => {
+  studentDetailPanel.hidden = true;
   showSection(stepLogin, "login-heading");
 });
 
@@ -522,6 +637,7 @@ exportCsvBtn.addEventListener("click", async () => {
   const headers = [
     "Sira",
     "Okul_Numarasi",
+    "Onay_Durumu",
     "Toplam_Puan",
     "Ortalama_Puan",
     "Kaygi_Dilimi",
@@ -535,6 +651,7 @@ exportCsvBtn.addEventListener("click", async () => {
     return [
       idx + 1,
       `"${String(s.studentNo).replace(/"/g, '""')}"`,
+      '"Onaylandi"',
       s.totalScore,
       s.avgScore,
       `"${tier}"`,
@@ -543,7 +660,6 @@ exportCsvBtn.addEventListener("click", async () => {
     ].join(";");
   });
 
-  // UTF-8 BOM ile Türkçe karakterlerin Excel'de düzgün açılmasını sağla
   const csvContent = "\uFEFF" + [headers.join(";"), ...rows].join("\r\n");
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
@@ -567,6 +683,7 @@ seedDemoBtn.addEventListener("click", async () => {
   await persistSubmission({
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     studentNo: randomNo,
+    consentApproved: true,
     answers,
     totalScore,
     avgScore,
@@ -574,17 +691,24 @@ seedDemoBtn.addEventListener("click", async () => {
     dateStr: new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })
   });
 
-  await refreshAdminData();
+  renderAdminStats(cachedSubmissions);
+  adminStatus.textContent = `Örnek öğrenci (${randomNo}) eklendi.`;
   seedDemoBtn.disabled = false;
 });
 
-// Verileri Sıfırlama
-clearDataBtn.addEventListener("click", async () => {
+// Tüm Verileri Resetleme Fonksiyonu (Hem üstteki hem alttaki Reset butonu için)
+async function handleResetAllData() {
   const confirmed = window.confirm(
-    "Tüm öğrenci yanıtlarını sıfırlamak istediğinize emin misiniz?"
+    "TÜM öğrenci yanıtlarını tamamen sıfırlamak (resetlemek) istediğinize emin misiniz?"
   );
   if (!confirmed) return;
+
+  adminStatus.textContent = "Veriler sıfırlanıyor...";
   await clearAllSubmissions();
-  await refreshAdminData();
-  adminStatus.textContent = "Tüm veriler sıfırlandı.";
-});
+  studentDetailPanel.hidden = true;
+  renderAdminStats([]);
+  adminStatus.textContent = "Tüm veriler başarıyla sıfırlandı.";
+}
+
+clearDataBtn.addEventListener("click", handleResetAllData);
+resetTopBtn.addEventListener("click", handleResetAllData);

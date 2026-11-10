@@ -8,12 +8,12 @@
 </head>
 <body>
   <main class="app-container">
-    <!-- ADIM 1: GİRİŞ EKRANI (OKUL NUMARASI) -->
+    <!-- ADIM 1: GİRİŞ EKRANI (OKUL NUMARASI + ONAY KUTUSU) -->
     <section id="step-login" class="card step-section" aria-labelledby="login-heading">
       <div class="badge">Sunum Etkinliği • 20 Soru</div>
       <h1 id="login-heading" tabindex="-1">Kaygı Ölçeği Anketi</h1>
       <p class="subtitle">
-        Lütfen başlamak için okul numaranızı giriniz. Yanıtlarınız sunum kapsamındaki genel sınıf değerlendirmesi için kullanılacaktır.
+        Lütfen başlamak için okul numaranızı giriniz ve aydınlatma onay kutucuğunu işaretleyiniz.
       </p>
 
       <form id="login-form" action="/api/login" method="POST" novalidate>
@@ -38,6 +38,23 @@
           >
           <span id="student-no-hint" class="hint">Ankete katılmak için öğrenci numaranızı yazınız.</span>
           <span id="student-no-error" class="error-msg" role="status" aria-live="polite"></span>
+        </div>
+
+        <div class="consent-group">
+          <div class="checkbox-row">
+            <input
+              type="checkbox"
+              id="consent-check"
+              name="consent"
+              required
+              aria-describedby="consent-error"
+            >
+            <label for="consent-check">
+              Verilerimin ve cevaplarımın bu proje hakkında işlenip kullanılmasını onaylıyorum.
+              <span class="required-star" aria-hidden="true">*</span>
+            </label>
+          </div>
+          <span id="consent-error" class="error-msg" role="status" aria-live="polite"></span>
         </div>
 
         <button type="submit" id="start-btn" class="btn btn-primary btn-block" enterkeyhint="next">
@@ -141,6 +158,9 @@
           <button type="button" id="refresh-admin-btn" class="btn btn-secondary btn-sm">
             ↻ Yenile
           </button>
+          <button type="button" id="reset-top-btn" class="btn btn-danger btn-sm">
+            🗑 Tüm Verileri Resetle
+          </button>
           <button type="button" id="exit-admin-btn" class="btn btn-secondary btn-sm">
             Çıkış
           </button>
@@ -166,7 +186,7 @@
         </div>
       </div>
 
-      <!-- YÜZDELİK DİLİM DAĞILIMI (ANA İSTEK) -->
+      <!-- YÜZDELİK DİLİM DAĞILIMI -->
       <div class="distribution-panel">
         <h3>Yüzdelik Kaygı Seviyesi Dilimleri</h3>
         <p class="dist-note">
@@ -236,10 +256,15 @@
         <div class="quintile-grid" id="quintile-container"></div>
       </div>
 
-      <!-- KATILIMCI TABLOSU VE DIŞA AKTARMA -->
+      <!-- KİŞİ BAZLI (ÖĞRENCİ NO BAZLI) SONUÇLAR VE TEK TEK SİLME -->
       <div class="admin-table-section">
         <div class="table-header-bar">
-          <h3>Katılan Öğrenciler</h3>
+          <div>
+            <h3>Kişi Bazlı (Öğrenci No) Sonuçlar</h3>
+            <p class="dist-note" style="margin-block-end: 0;">
+              Öğrenci sonuçlarını inceleyebilir, cevap detaylarını görebilir veya tek tek silebilirsiniz.
+            </p>
+          </div>
           <div class="table-actions">
             <button type="button" id="export-csv-btn" class="btn btn-secondary btn-sm">
               ⬇ Excel (CSV) İndir
@@ -248,30 +273,57 @@
               + Test Verisi Ekle
             </button>
             <button type="button" id="clear-data-btn" class="btn btn-danger btn-sm">
-              Verileri Sıfırla
+              🗑 Tüm Verileri Resetle
             </button>
           </div>
         </div>
+
+        <!-- ÖĞRENCİ NO İLE ARAMA / FİLTRELEME -->
+        <search class="student-search-bar">
+          <label for="student-filter" class="visually-hidden">Öğrenci numarasına göre filtrele</label>
+          <input
+            type="search"
+            id="student-filter"
+            name="studentFilter"
+            placeholder="Öğrenci numarası ile ara (Örn: 2023...)"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="none"
+            spellcheck="false"
+          >
+        </search>
 
         <div class="table-responsive">
           <table class="results-table">
             <thead>
               <tr>
                 <th>#</th>
-                <th>Okul Numarası</th>
+                <th>Öğrenci No</th>
                 <th>Toplam Puan</th>
                 <th>Ortalama</th>
-                <th>Bulunduğu Dilim</th>
-                <th>Tarih / Saat</th>
+                <th>Kaygı Dilimi</th>
+                <th>Saat</th>
+                <th>İşlemler</th>
               </tr>
             </thead>
             <tbody id="admin-table-body">
               <tr>
-                <td colspan="6" class="empty-row">Henüz veri girilmedi.</td>
+                <td colspan="7" class="empty-row">Henüz veri girilmedi.</td>
               </tr>
             </tbody>
           </table>
         </div>
+      </div>
+
+      <!-- SEÇİLEN ÖĞRENCİNİN SORU BAZLI CEVAP DETAYI -->
+      <div id="student-detail-panel" class="student-detail-panel" hidden>
+        <div class="detail-header">
+          <h4 id="detail-student-title" tabindex="-1">Öğrenci Cevap Detayı</h4>
+          <button type="button" id="close-detail-btn" class="btn btn-secondary btn-sm">
+            Kapat ✕
+          </button>
+        </div>
+        <div id="detail-answers-list" class="detail-answers-grid"></div>
       </div>
 
       <p id="admin-status" class="hint" role="status" aria-live="polite"></p>
