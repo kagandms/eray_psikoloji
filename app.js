@@ -345,9 +345,10 @@ const ADMIN_PASSWORDS = ["sunum-falan-filan", "(sunum-falan-filan)"];
 const TEACHER_CODE = "001";
 const STUDENT_NO_REGEX = /^\d{11}$/;
 
-const LOCAL_STORAGE_KEY = "kaygi_olcegi_submissions_v1";
+const LOCAL_STORAGE_KEY = "kaygi_olcegi_submissions_v2";
 const LANG_STORAGE_KEY = "kaygi_olcegi_lang_v1";
-const CLOUD_STORE_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a1c42e500a7993";
+const NTFY_TOPIC = "itopkapi_eray_kaygi_2026_prod";
+const NTFY_BASE_URL = `https://ntfy.sh/${NTFY_TOPIC}`;
 
 // Uygulama Durumu
 let currentLang = localStorage.getItem(LANG_STORAGE_KEY) || "tr";
@@ -360,7 +361,8 @@ let currentQuestionIndex = 0;
 let userAnswers = new Array(QUESTION_COUNT).fill(null);
 let cachedSubmissions = [];
 let currentlyViewedStudentId = null;
-let adminPollTimer = null;
+let adminEventSource = null;
+const processedEventIds = new Map();
 
 // DOM Referansları
 const stepLogin = document.getElementById("step-login");
@@ -538,9 +540,9 @@ function showSection(targetSection, headingId) {
     sec.hidden = sec !== targetSection;
   });
 
-  if (targetSection !== stepAdmin && adminPollTimer) {
-    clearInterval(adminPollTimer);
-    adminPollTimer = null;
+  if (targetSection !== stepAdmin && adminEventSource) {
+    adminEventSource.close();
+    adminEventSource = null;
   }
 
   const heading = document.getElementById(headingId);
@@ -549,7 +551,7 @@ function showSection(targetSection, headingId) {
   }
 }
 
-// --- VERİ SAKLAMA (BULUT + SUNUCU + YEREL YEDEK) ---
+// --- VERİ SAKLAMA (GERÇEK ZAMANLI BULUT AKIŞI + SUNUCU + YEREL YEDEK) ---
 function getLocalSubmissions() {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -567,16 +569,88 @@ function saveLocalSubmissions(list) {
   }
 }
 
+function parseNtfyEnvelope(rawLine) {
+  try {
+    const env = typeof rawLine === "string" ? JSON.parse(rawLine) : rawLine;
+    if (!env || env.event !== "message" || typeof env.message !== "string") return null;
+    if (!env.message.startsWith("EVT:")) return null;
+    const payload = JSON.parse(env.message.slice(4));
+    return {
+      ntfyId: env.id,
+      ntfyTime: (env.time || 0) * 1000,
+      payload
+    };
+  } catch {
+    return null;
+  }
+}
+
+function rebuildStateFromEvents() {
+  const allEvents = Array.from(processedEventIds.values()).sort((a, b) => {
+    const tA = a.payload.ts || a.payload.entry?.timestamp || a.ntfyTime || 0;
+    const tB = b.payload.ts || b.payload.entry?.timestamp || b.ntfyTime || 0;
+    return tA - tB;
+  });
+
+  let list = [];
+  for (const item of allEvents) {
+    const p = item.payload;
+    if (p.op === "reset") {
+      list = [];
+    } else if (p.op === "submit" && p.entry && p.entry.studentNo) {
+      const cleanNo = String(p.entry.studentNo).trim();
+      list = list.filter((s) => String(s.studentNo).trim() !== cleanNo);
+      list.push(p.entry);
+    } else if (p.op === "delete") {
+      list = list.filter(
+        (s) => s.id !== p.id && String(s.studentNo).trim() !== String(p.studentNo || "").trim()
+      );
+    }
+  }
+
+  cachedSubmissions = list;
+  saveLocalSubmissions(list);
+  return list;
+}
+
+async function publishCloudEvent(payload) {
+  try {
+    const res = await fetch(NTFY_BASE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=UTF-8"
+      },
+      body: `EVT:${JSON.stringify(payload)}`
+    });
+    if (res.ok) {
+      const env = await res.json();
+      const parsed = parseNtfyEnvelope(env);
+      if (parsed) {
+        processedEventIds.set(parsed.ntfyId, parsed);
+        rebuildStateFromEvents();
+      }
+    }
+  } catch {
+    // Çevrimdışı durumda yerel yedek kullanılır
+  }
+}
+
 async function fetchAllSubmissions() {
   try {
-    const cloudRes = await fetch(CLOUD_STORE_URL, { cache: "no-store" });
-    if (cloudRes.ok) {
-      const cloudObj = await cloudRes.json();
-      const cloudList = cloudObj?.data?.submissions;
-      if (Array.isArray(cloudList)) {
-        saveLocalSubmissions(cloudList);
-        cachedSubmissions = cloudList;
-        return cloudList;
+    const res = await fetch(`${NTFY_BASE_URL}/json?poll=1&since=all`, {
+      cache: "no-store"
+    });
+    if (res.ok) {
+      const text = await res.text();
+      const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+      for (const line of lines) {
+        const parsed = parseNtfyEnvelope(line);
+        if (parsed) {
+          processedEventIds.set(parsed.ntfyId, parsed);
+        }
+      }
+      if (processedEventIds.size > 0) {
+        return rebuildStateFromEvents();
       }
     }
   } catch {
@@ -587,7 +661,7 @@ async function fetchAllSubmissions() {
     const res = await fetch("/api/responses", { cache: "no-store" });
     if (res.ok) {
       const serverData = await res.json();
-      if (Array.isArray(serverData.submissions)) {
+      if (Array.isArray(serverData.submissions) && serverData.submissions.length > 0) {
         saveLocalSubmissions(serverData.submissions);
         cachedSubmissions = serverData.submissions;
         return serverData.submissions;
@@ -602,23 +676,37 @@ async function fetchAllSubmissions() {
   return fallback;
 }
 
-async function syncSubmissionListEverywhere(updatedList) {
-  cachedSubmissions = updatedList;
-  saveLocalSubmissions(updatedList);
-
-  try {
-    await fetch(CLOUD_STORE_URL, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: "kaygi-olcegi-store",
-        data: { submissions: updatedList }
-      })
-    });
-  } catch {
-    // Bulut hatası
+function startRealtimeAdminStream() {
+  if (adminEventSource) {
+    adminEventSource.close();
+    adminEventSource = null;
   }
 
+  try {
+    adminEventSource = new EventSource(`${NTFY_BASE_URL}/sse?since=all`);
+    adminEventSource.onmessage = (evt) => {
+      const parsed = parseNtfyEnvelope(evt.data);
+      if (!parsed) return;
+      const hadAlready = processedEventIds.has(parsed.ntfyId);
+      processedEventIds.set(parsed.ntfyId, parsed);
+      const updated = rebuildStateFromEvents();
+      if (!stepAdmin.hidden) {
+        renderAdminStats(updated);
+        if (!hadAlready) {
+          const dict = t();
+          adminStatus.textContent = dict.statusUpdated(
+            new Date().toLocaleTimeString("tr-TR"),
+            updated.length
+          );
+        }
+      }
+    };
+  } catch {
+    // EventSource desteklenmiyorsa manuel yenileme çalışır
+  }
+}
+
+async function syncLocalServer(updatedList) {
   try {
     await fetch("/api/responses", {
       method: "PUT",
@@ -631,24 +719,47 @@ async function syncSubmissionListEverywhere(updatedList) {
 }
 
 async function persistSubmission(newEntry) {
-  const currentList = await fetchAllSubmissions();
-  const filtered = currentList.filter(
-    (item) => String(item.studentNo).trim() !== String(newEntry.studentNo).trim()
-  );
-  const updatedList = [...filtered, newEntry];
-  await syncSubmissionListEverywhere(updatedList);
+  const cleanNo = String(newEntry.studentNo).trim();
+  const filtered = cachedSubmissions.filter((item) => String(item.studentNo).trim() !== cleanNo);
+  cachedSubmissions = [...filtered, newEntry];
+  saveLocalSubmissions(cachedSubmissions);
+
+  await publishCloudEvent({
+    op: "submit",
+    ts: newEntry.timestamp || Date.now(),
+    entry: newEntry
+  });
+
+  await syncLocalServer(cachedSubmissions);
 }
 
 async function deleteSingleSubmission(targetId) {
   if (isAdminReadOnly) return;
-  const currentList = await fetchAllSubmissions();
-  const updatedList = currentList.filter((item) => item.id !== targetId);
-  await syncSubmissionListEverywhere(updatedList);
+  const targetItem = cachedSubmissions.find((item) => item.id === targetId);
+  cachedSubmissions = cachedSubmissions.filter((item) => item.id !== targetId);
+  saveLocalSubmissions(cachedSubmissions);
+
+  await publishCloudEvent({
+    op: "delete",
+    id: targetId,
+    studentNo: targetItem?.studentNo || "",
+    ts: Date.now()
+  });
+
+  await syncLocalServer(cachedSubmissions);
 }
 
 async function clearAllSubmissions() {
   if (isAdminReadOnly) return;
-  await syncSubmissionListEverywhere([]);
+  cachedSubmissions = [];
+  saveLocalSubmissions([]);
+
+  await publishCloudEvent({
+    op: "reset",
+    ts: Date.now()
+  });
+
+  await syncLocalServer([]);
 }
 
 // --- ADIM 1: GİRİŞ DOĞRULAMA (11 HANE KURALI + ADMIN & 001 İSTİSNASI) ---
@@ -910,11 +1021,8 @@ async function openAdminPanel(readOnlyMode = false) {
   studentDetailPanel.hidden = true;
   currentlyViewedStudentId = null;
   showSection(stepAdmin, "admin-heading");
+  startRealtimeAdminStream();
   await refreshAdminData();
-
-  if (!adminPollTimer) {
-    adminPollTimer = setInterval(refreshAdminData, 6000);
-  }
 }
 
 async function refreshAdminData() {
