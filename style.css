@@ -1,25 +1,25 @@
 :root {
-  --bg-page: #f4f6fb;
+  --bg-page: #f7f3f4;
   --bg-card: #ffffff;
-  --text-main: #111827;
+  --text-main: #1f2937;
   --text-muted: #4b5563;
   --border-color: #6b7280;
-  --border-subtle: #e5e7eb;
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --primary-soft: #eff6ff;
-  --focus-ring: #0b57d0;
+  --border-subtle: #e5e0e2;
+  --primary: #841625;
+  --primary-hover: #68101c;
+  --primary-soft: #fdf2f4;
+  --focus-ring: #841625;
   --danger: #dc2626;
   --danger-soft: #fef2f2;
   --low-color: #16a34a;
   --low-bg: #dcfce7;
   --mid-color: #d97706;
   --mid-bg: #fef3c7;
-  --high-color: #dc2626;
+  --high-color: #b91c1c;
   --high-bg: #fee2e2;
   --radius-lg: 16px;
   --radius-md: 12px;
-  --shadow-card: 0 10px 30px -5px rgba(17, 24, 39, 0.08), 0 4px 12px -2px rgba(17, 24, 39, 0.04);
+  --shadow-card: 0 10px 30px -5px rgba(132, 22, 37, 0.08), 0 4px 12px -2px rgba(17, 24, 39, 0.04);
 }
 
 *,
@@ -148,6 +148,21 @@ body {
   }
 }
 
+.school-logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-block-end: 1.25rem;
+  padding-block-end: 1rem;
+  border-block-end: 1px solid var(--border-subtle);
+}
+
+.school-logo {
+  max-width: 240px;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 .badge {
   display: inline-block;
   font-size: 0.8125rem;
@@ -160,8 +175,8 @@ body {
 }
 
 .badge-admin {
-  color: #7c3aed;
-  background: #f3e8ff;
+  color: var(--primary);
+  background: #fce7eb;
 }
 
 h1, h2, h3, h4 {
@@ -443,7 +458,7 @@ progress::-moz-progress-bar {
   border-color: var(--primary);
   background-color: var(--primary-soft);
   font-weight: 600;
-  color: #1e3a8a;
+  color: #5c0d18;
 }
 
 .radio-card input[type="radio"]:checked + label .opt-indicator {
