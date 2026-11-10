@@ -364,6 +364,7 @@ let cachedSubmissions = [];
 let currentlyViewedStudentId = null;
 let adminEventSource = null;
 const processedEventIds = new Map();
+const revealedStudentIds = new Set();
 
 // DOM Referansları
 const stepLogin = document.getElementById("step-login");
@@ -1073,8 +1074,20 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
+function maskStudentNo(no) {
+  const s = String(no || "").trim();
+  if (s.length <= 2) {
+    return s.slice(0, 1) + "*".repeat(Math.max(1, s.length - 1));
+  }
+  return s.slice(0, 2) + "*".repeat(s.length - 2);
+}
+
+const EYE_OPEN_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const EYE_OFF_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`;
+
 async function openAdminPanel(readOnlyMode = false) {
   isAdminReadOnly = Boolean(readOnlyMode);
+  revealedStudentIds.clear();
   updateAdminPermissionsUI();
   studentDetailPanel.hidden = true;
   currentlyViewedStudentId = null;
@@ -1175,6 +1188,10 @@ function renderStudentTable(submissions) {
     .map((item, idx) => {
       const tier = getTierInfo(Number(item.totalScore));
       const safeId = escapeHtml(item.id);
+      const isRevealed = revealedStudentIds.has(item.id);
+      const displayedNo = escapeHtml(
+        isRevealed ? item.studentNo : maskStudentNo(item.studentNo)
+      );
       const safeNo = escapeHtml(item.studentNo);
       const deleteBtnHtml = isAdminReadOnly
         ? ""
@@ -1191,7 +1208,21 @@ function renderStudentTable(submissions) {
       return `
         <tr>
           <td>${filtered.length - idx}</td>
-          <td><strong>${safeNo}</strong></td>
+          <td>
+            <div class="student-no-cell">
+              <strong class="student-no-text">${displayedNo}</strong>
+              <button
+                type="button"
+                class="eye-toggle-btn"
+                data-action="toggle-no"
+                data-id="${safeId}"
+                aria-pressed="${isRevealed ? "true" : "false"}"
+                aria-label="${isRevealed ? "Öğrenci numarasını gizle" : "Öğrenci numarasını göster"}"
+              >
+                ${isRevealed ? EYE_OFF_SVG : EYE_OPEN_SVG}
+              </button>
+            </div>
+          </td>
           <td><strong>${Number(item.totalScore)}</strong> / 100</td>
           <td>${Number(item.avgScore).toFixed(2)} / 5</td>
           <td><span class="pill ${tier.pillClass}">${escapeHtml(tier.label)}</span></td>
@@ -1227,6 +1258,20 @@ adminTableBody.addEventListener("click", async (e) => {
   const action = btn.getAttribute("data-action");
   const targetId = btn.getAttribute("data-id");
 
+  if (action === "toggle-no") {
+    if (revealedStudentIds.has(targetId)) {
+      revealedStudentIds.delete(targetId);
+    } else {
+      revealedStudentIds.add(targetId);
+    }
+    renderStudentTable(cachedSubmissions);
+    if (!studentDetailPanel.hidden && currentlyViewedStudentId === targetId) {
+      const st = cachedSubmissions.find((s) => s.id === targetId);
+      if (st) showStudentDetails(st, false);
+    }
+    return;
+  }
+
   if (action === "view") {
     const student = cachedSubmissions.find((s) => s.id === targetId);
     if (!student) return;
@@ -1254,8 +1299,11 @@ function showStudentDetails(student, shouldFocus = true) {
   const dict = t();
   currentlyViewedStudentId = student.id;
   const tier = getTierInfo(Number(student.totalScore));
+  const displayedNo = revealedStudentIds.has(student.id)
+    ? student.studentNo
+    : maskStudentNo(student.studentNo);
   detailStudentTitle.textContent = dict.detailHeader(
-    student.studentNo,
+    displayedNo,
     student.totalScore,
     tier.label
   );
