@@ -796,6 +796,32 @@ prevBtn.addEventListener("click", () => {
   }
 });
 
+// PC'de hızlı test için gizli klavye kısayolları: 1-5 ile şık seçimi, Enter ile ilerleme
+document.addEventListener("keydown", (e) => {
+  if (stepSurvey.hidden || e.isComposing || e.ctrlKey || e.altKey || e.metaKey) {
+    return;
+  }
+
+  if (["1", "2", "3", "4", "5"].includes(e.key)) {
+    e.preventDefault();
+    const idx = Number(e.key) - 1;
+    const targetRadio = radioInputs[idx];
+    if (targetRadio) {
+      targetRadio.checked = true;
+      userAnswers[currentQuestionIndex] = Number(targetRadio.value);
+      questionError.textContent = "";
+    }
+    return;
+  }
+
+  if (e.key === "Enter") {
+    e.preventDefault();
+    if (!nextBtn.disabled) {
+      questionForm.requestSubmit(nextBtn);
+    }
+  }
+});
+
 questionForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const dict = t();
