@@ -822,9 +822,20 @@ async function clearAllSubmissions() {
 }
 
 // --- ADIM 1: GİRİŞ DOĞRULAMA (11 HANE KURALI + ADMIN & 001 İSTİSNASI) ---
+function isAdminPassword(val) {
+  const normalized = String(val || "")
+    .toLocaleLowerCase("tr-TR")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ı/g, "i")
+    .replace(/[()[\]\s]/g, "")
+    .replace(/[–—―_]/g, "-");
+  return normalized === "sunum-falan-filan";
+}
+
 function isSpecialEntry(val) {
-  const lower = val.toLowerCase();
-  return ADMIN_PASSWORDS.includes(lower) || val === TEACHER_CODE;
+  const trimmed = String(val || "").trim();
+  return isAdminPassword(trimmed) || trimmed === TEACHER_CODE;
 }
 
 function validateStudentNo() {
@@ -898,7 +909,7 @@ loginForm.addEventListener("submit", async (e) => {
   const entered = studentNoInput.value.trim();
 
   // 1) Gizli Admin Paneli Kontrolü: "Sunum-Falan-Filan" (Tam Yetkili)
-  if (ADMIN_PASSWORDS.includes(entered.toLowerCase())) {
+  if (isAdminPassword(entered)) {
     studentNoInput.value = "";
     consentError.textContent = "";
     consentCheck.removeAttribute("aria-invalid");
